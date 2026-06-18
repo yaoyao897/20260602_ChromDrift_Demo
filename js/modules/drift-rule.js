@@ -140,11 +140,13 @@
                 <el-form-item label="规则编码" required>
                   <el-input v-model="form.code" placeholder="输入,唯一" />
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'code')" />
               </el-col>
               <el-col :span="12">
                 <el-form-item label="规则名称" required>
                   <el-input v-model="form.name" placeholder="输入,唯一" />
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'name')" />
               </el-col>
               <el-col :span="12">
                 <el-form-item label="典型保留时间数量" required>
@@ -152,6 +154,7 @@
                     <el-option v-for="o in rtModes" :key="o.value" :label="o.label" :value="o.value" />
                   </el-select>
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'rtAccumMode')" />
               </el-col>
               <el-col :span="12">
                 <el-form-item label="适用台账类型" required>
@@ -159,6 +162,7 @@
                     <el-option v-for="o in ledgerTypes" :key="o.value" :label="o.label" :value="o.value" />
                   </el-select>
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'ledgerType')" />
               </el-col>
               <el-col :span="24">
                 <el-form-item label="RRT&amp;tR差值范围" required class="demo-form-item-deviation">
@@ -176,6 +180,7 @@
                     <el-input-number v-model="devAbsMax" :min="0" :step="0.001" :precision="3" controls-position="right" class="demo-form-deviation__num" />
                   </div>
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'deviationRange')" />
               </el-col>
               <el-col :span="12">
                 <el-form-item label="适用类型" required>
@@ -183,16 +188,19 @@
                     <el-option v-for="o in applyTypes" :key="o.value" :label="o.label" :value="o.value" />
                   </el-select>
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'applyType')" />
               </el-col>
               <el-col :span="12">
                 <el-form-item label="启用状态" required>
                   <el-switch v-model="form.enabled" active-text="启用" inactive-text="禁用" />
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'enabled')" />
               </el-col>
               <el-col :span="24">
                 <el-form-item label="备注">
                   <el-input v-model="form.remark" />
                 </el-form-item>
+                <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'remark')" />
               </el-col>
             </el-row>
           </el-form>
@@ -202,6 +210,12 @@
               <p v-if="trSubtableOptional" class="demo-form-hint" style="margin:0 0 8px;color:var(--el-text-color-secondary);font-size:12px">
                 典型保留时间数量为「按批次新杂滚动叠加」或「首批次新杂滚动」时，tR 子表可不填，列头由图谱识别保存后回写滚动叠加行。
               </p>
+              <template v-if="remarkMode">
+                <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trRowType')" />
+                <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trTypicalRt')" />
+                <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trCompoundName')" />
+                <demo-field-remark v-if="showTrQcpCol" v-bind="fieldRemarkProps('driftRule', 'trApplyQcp')" />
+              </template>
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="addTrRow">添加一行</el-button>
                 <el-button @click="toast('导入数据')">导入数据</el-button>
@@ -253,6 +267,7 @@
             </el-tab-pane>
 
             <el-tab-pane v-if="showMatTab" label="物料" name="material">
+              <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'matCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openMatPicker">添加物料</el-button>
                 <el-button type="danger" @click="batchDelMat">批量删除</el-button>
@@ -283,6 +298,7 @@
             </el-tab-pane>
 
             <el-tab-pane v-if="showQcpTab" label="QCP点" name="qcp">
+              <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'qcpCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openQcpPicker">添加QCP点</el-button>
                 <el-button type="danger" @click="batchDelQcp">批量删除</el-button>
@@ -548,6 +564,7 @@
       DemoModuleGuideCard: ChromDriftModuleGuideCard,
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
+      DemoFieldRemark: ChromDriftFieldRemark,
     },
     setup() {
       const rules = usePersistedRef('drift-rules', SEED_DRIFT_RULES);
@@ -994,7 +1011,9 @@
         addTrRow, batchDelTr, batchDelMat, batchDelQcp, onTrSel, onMatSel, onQcpSel, onApplyTypeChange,
         matDlg, matQuery, matPickPage, matFiltered, matPageNum, matPageSize, matPickRef, openMatPicker, confirmMatPick, resetMatQuery, filterMasters,
         qcpDlg, qcpQuery, qcpPickPage, qcpFiltered, qcpPageNum, qcpPageSize, qcpPickRef, openQcpPicker, confirmQcpPick, resetQcpQuery,
-        submitForm, onDlgClosed, remarks, flow, remarkMode, dialogTableHeight, pickerTableHeight, tableRef, listCardRef,
+        submitForm, onDlgClosed, remarks, flow, remarkMode,
+        fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
+        dialogTableHeight, pickerTableHeight, tableRef, listCardRef,
       };
     },
   };

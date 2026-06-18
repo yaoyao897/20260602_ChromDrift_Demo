@@ -20,9 +20,7 @@
     details.forEach((d) => {
       if (d.typicalRt == null || d.typicalRt === '') return;
       if (d.isNewImpurity !== true && d.isNewImpurity !== '是') return;
-      const note = String(d.abnormalNote || '');
-      if (note === '顺序异常' || note.includes('重复匹配')) return;
-      errs.push(`峰${d.peakNo}：对应典型保留时间有值时不可标记为新杂`);
+      errs.push(`峰${d.peakNo}：新杂峰不可填写对应典型保留时间`);
     });
     const lockErr = ChromDriftSpectrumCalc.validateLockedUnique(details);
     if (lockErr) errs.push(lockErr);

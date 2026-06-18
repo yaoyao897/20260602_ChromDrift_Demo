@@ -318,6 +318,7 @@
     });
 
     postValidateOrder(rows, typicalRts, warningRule);
+    finalizeNewImpurityRows(rows);
 
     const hasNew = rows.some((r) => r.isNewImpurity === true || r.isNewImpurity === '是');
     const hasExcess = rows.some((r) => r.isExcessImpurity === '是');
@@ -328,6 +329,14 @@
       hasExcessImpurity: hasExcess ? '是' : '否',
       deviationRange,
     };
+  }
+
+  function finalizeNewImpurityRows(rows) {
+    rows.forEach((r) => {
+      if (r.isNewImpurity === true || r.isNewImpurity === '是') {
+        r.typicalRt = null;
+      }
+    });
   }
 
   function postValidateOrder(rows, typicalRts, warningRule) {

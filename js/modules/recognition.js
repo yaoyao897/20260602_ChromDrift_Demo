@@ -56,6 +56,11 @@
     };
   }
 
+  function displayTypicalRt(row) {
+    if (!row || row.isNewImpurity === true || row.isNewImpurity === '是') return '';
+    return row.typicalRt != null && row.typicalRt !== '' ? row.typicalRt : '';
+  }
+
   function ynLabel(v) {
     if (v === true || v === '是') return '是';
     if (v === false || v === '否') return '否';
@@ -153,7 +158,7 @@
               border stripe
               height="420"
               :column-config="{ resizable: true, minWidth: 80 }"
-              :row-config="{ isHover: true, keyField: 'id' }"
+              :row-config="{ isHover: true, keyField: 'id', isCurrent: true }"
               :checkbox-config="{ reserve: true, highlight: true }"
               :scroll-x="{ enabled: true }"
               empty-text="暂无数据"
@@ -196,12 +201,13 @@
           <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
         </div>
 
-        <!-- 新增 -->
+        <!-- 新增 / 复核 -->
         <el-dialog
           v-model="addDlg"
-          class="demo-dialog"
-          title="新增"
-          width="1200px"
+          class="demo-dialog demo-dialog--recognition-calc"
+          :title="addDialogTitle"
+          width="1380px"
+          top="4vh"
           destroy-on-close
           :close-on-click-modal="false"
           @closed="onAddClosed"
@@ -326,6 +332,11 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <demo-field-remark-list
+              v-if="remarkMode"
+              title="③ 表头字段规格"
+              :items="recognitionHeadRemarkItems"
+            />
           </el-form>
 
           <div class="demo-detail-toolbar">
@@ -333,11 +344,19 @@
             <el-button :loading="calculating" @click="doRecalculate">重新计算</el-button>
           </div>
 
+          <demo-field-remark-list
+            v-if="remarkMode"
+            title="③ 明细列规格"
+            :items="recognitionDetailRemarkItems"
+          />
+
+          <div class="recognition-calc-layout" :style="{ '--calc-layout-h': calcLayoutHeight + 'px' }">
+            <div class="recognition-calc-layout__main demo-card recognition-calc-card">
           <vxe-table
-            class="demo-table demo-dialog-table"
+            class="demo-table demo-dialog-table recognition-calc-table"
             :data="form.details"
             border
-            :height="detailTableHeight"
+            height="100%"
             :column-config="{ resizable: true, minWidth: 90 }"
             empty-text="上传文件并点击「计算」生成明细"
           >
@@ -394,6 +413,13 @@
             </vxe-column>
             <vxe-column field="isExcessImpurity" title="是否超标新杂" min-width="110" show-overflow />
           </vxe-table>
+            </div>
+            <demo-recognition-ai-assistant
+              mode="calc"
+              :record="aiCalcRecord"
+              @apply-locks="onAiApplyLocks"
+            />
+          </div>
 
           <template #footer>
             <el-button @click="addDlg = false">取消</el-button>
@@ -441,7 +467,9 @@
               <template #default="{ row }">{{ row.isMainPeak ? '是' : '否' }}</template>
             </vxe-column>
             <vxe-column field="rrt" title="相对保留时间" min-width="110" />
-            <vxe-column field="typicalRt" title="对应典型保留时间" min-width="130" />
+            <vxe-column title="对应典型保留时间" min-width="130">
+              <template #default="{ row }">{{ displayTypicalRt(row) }}</template>
+            </vxe-column>
             <vxe-column field="deviationRange" title="理论偏差范围" min-width="120" show-overflow />
             <vxe-column title="是否新杂" width="90">
               <template #default="{ row }">{{ ynLabel(row.isNewImpurity) }}</template>
@@ -457,8 +485,29 @@
       DemoModuleGuideCard: ChromDriftModuleGuideCard,
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
+      DemoFieldRemark: ChromDriftFieldRemark,
+      DemoFieldRemarkList: ChromDriftFieldRemarkList,
+      DemoRecognitionAiAssistant: ChromDriftRecognitionAiAssistant,
     },
     setup() {
+      const { ref, computed, watch } = Vue;
+      const recognitionHeadFieldKeys = [
+        'ledgerType', 'applyType', 'file', 'fileName', 'fileSavedAt', 'sampleName',
+        'instrumentCode', 'instrumentName', 'materialInfo', 'batchNo', 'qcpPoint',
+        'ruleName', 'warningRuleName', 'hasNewImpurity', 'hasExcessImpurity', 'attachment', 'remark',
+      ];
+      const recognitionDetailFieldKeys = [
+        'detAbnormalNote', 'detPeakNo', 'detRt', 'detArea', 'detComponent', 'detMainPeak',
+        'detRrt', 'detTypicalRt', 'detLocked', 'detDeviationRange', 'detNewImpurity', 'detExcessImpurity',
+      ];
+      const recognitionHeadRemarkItems = ChromDriftFormFieldRemarks.fieldRemarkListItems(
+        'recognition',
+        recognitionHeadFieldKeys,
+      );
+      const recognitionDetailRemarkItems = ChromDriftFormFieldRemarks.fieldRemarkListItems(
+        'recognition',
+        recognitionDetailFieldKeys,
+      );
       const records = usePersistedRef('recognition-records', SEED_RECOGNITION_RECORDS);
       const driftRules = usePersistedRef('drift-rules', SEED_DRIFT_RULES);
       const warningRules = ref(SEED_WARNING_RULES);
@@ -471,6 +520,7 @@
       const listCardRef = ref(null);
 
       const addDlg = ref(false);
+      const isRecheckMode = ref(false);
       const detailDlg = ref(false);
       const detailRow = ref(null);
       const form = ref(emptyForm());
@@ -479,7 +529,7 @@
       const matchedWarning = ref(null);
       const calculating = ref(false);
       const calcDone = ref(false);
-      const detailTableHeight = 300;
+      const calcLayoutHeight = 400;
 
       const fileSavedRange = ref(null);
       const createdRange = ref(null);
@@ -489,6 +539,11 @@
       const remarkMode = ChromDriftRemarkMode.state;
 
       const showQcp = computed(() => form.value.applyType === '生产过程');
+      const addDialogTitle = computed(() => (isRecheckMode.value ? '复核（AI 建议）' : '新增'));
+      const aiCalcRecord = computed(() => ({
+        ...form.value,
+        details: form.value.details || [],
+      }));
       const qcpOptions = computed(() => SEED_QCP.filter((q) => q.enabled !== false));
 
       const typicalRtOptions = computed(() => {
@@ -693,7 +748,47 @@
         form.value.attachmentName = uploadFile.name || uploadFile.raw?.name || '';
       }
 
+      function onAiApplyLocks({ locks }) {
+        (locks || []).forEach((lock) => {
+          const det = form.value.details.find((d) => d.peakNo === lock.peakNo);
+          if (det && !det.isNewImpurity) {
+            det.typicalRt = lock.typicalRt;
+            det.locked = true;
+          }
+        });
+      }
+
+      function openRecheck(row, locks) {
+        isRecheckMode.value = true;
+        const base = clone(row);
+        delete base.id;
+        delete base.createdAt;
+        delete base.createdBy;
+        form.value = { ...emptyForm(), ...base, details: clone(row.details || []) };
+        matchedDrift.value = driftRules.value.find((r) => r.id === row.driftRuleId) || null;
+        matchedWarning.value = warningRules.value.find((r) => r.id === row.warningRuleId) || null;
+        form.value.ruleName = matchedDrift.value?.name || row.ruleName || '';
+        form.value.warningRuleName = matchedWarning.value?.name || row.warningRuleName || '';
+        uploadedPeaks.value = (row.details || []).map((d) => ({
+          peakNo: d.peakNo,
+          rt: d.rt,
+          area: d.area,
+          component: d.componentName || '',
+        }));
+        (locks || []).forEach((lock) => {
+          const det = form.value.details.find((d) => d.peakNo === lock.peakNo);
+          if (det && !det.isNewImpurity) {
+            det.typicalRt = lock.typicalRt;
+            det.locked = true;
+          }
+        });
+        calcDone.value = true;
+        addDlg.value = true;
+        ElMessage.success('已打开复核页，请确认锁定后点击「重新计算」');
+      }
+
       function openAdd() {
+        isRecheckMode.value = false;
         form.value = emptyForm();
         uploadedPeaks.value = [];
         matchedDrift.value = null;
@@ -703,6 +798,7 @@
       }
 
       function onAddClosed() {
+        isRecheckMode.value = false;
         form.value = emptyForm();
         uploadedPeaks.value = [];
         calcDone.value = false;
@@ -779,6 +875,9 @@
       }
 
       function saveAdd() {
+        (form.value.details || []).forEach((d) => {
+          if (d.isNewImpurity === true || d.isNewImpurity === '是') d.typicalRt = null;
+        });
         const errs = V.validateSave(form.value, form.value.details);
         if (errs.length) {
           ElMessage.warning(errs[0]);
@@ -851,13 +950,17 @@
         ledgerTypes: LEDGER_TYPES, applyTypes: APPLY_TYPES, pageSizes: PAGE_SIZES,
         pageNum, pageSize, pagedRows, filteredRows,
         tableRef, listCardRef, onSelChange, batchDelete, exportData,
+        aiCalcRecord, onAiApplyLocks, addDialogTitle,
         openAdd, addDlg, form, showQcp, qcpOptions, instruments: SEED_INSTRUMENTS,
         exampleSpectra: TEST_SPECTRA,
         loadExample, downloadExample,
         onFilePick, onAttachPick, onHeadChange, onInstrumentChange,
         doCalculate, doRecalculate, saveAdd, onAddClosed,
-        calculating, detailTableHeight, typicalRtOptions,
-        openDetail, detailDlg, detailRow, ynLabel,
+        calculating, calcLayoutHeight, typicalRtOptions,
+        openDetail, detailDlg, detailRow, ynLabel, displayTypicalRt,
+        recognitionHeadFieldKeys, recognitionDetailFieldKeys,
+        recognitionHeadRemarkItems, recognitionDetailRemarkItems,
+        fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
         remarks, flow, remarkMode, toast, toggleFullscreen,
         fileSavedRange, createdRange,
       };

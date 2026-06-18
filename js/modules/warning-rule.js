@@ -221,10 +221,18 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <template v-if="remarkMode">
+              <demo-field-remark
+                v-for="fk in warningHeadFieldKeys"
+                :key="fk"
+                v-bind="fieldRemarkProps('warningRule', fk)"
+              />
+            </template>
           </el-form>
 
           <el-tabs v-model="activeTab" class="demo-dialog-tabs">
             <el-tab-pane v-if="showMatTab" label="物料" name="material">
+              <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('warningRule', 'matCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openMatPicker">添加物料</el-button>
                 <el-button type="danger" @click="batchDelMat">批量删除</el-button>
@@ -255,6 +263,7 @@
             </el-tab-pane>
 
             <el-tab-pane v-if="showQcpTab" label="QCP点" name="qcp">
+              <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('warningRule', 'qcpCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openQcpPicker">添加QCP点</el-button>
                 <el-button type="danger" @click="batchDelQcp">批量删除</el-button>
@@ -375,8 +384,12 @@
       DemoModuleGuideCard: ChromDriftModuleGuideCard,
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
+      DemoFieldRemark: ChromDriftFieldRemark,
     },
     setup() {
+      const warningHeadFieldKeys = [
+        'code', 'name', 'deviationType', 'applyType', 'usl', 'lsl', 'ucl', 'lcl', 'remark', 'enabled',
+      ];
       const rules = usePersistedRef('warning-rules', SEED_WARNING_RULES);
       const query = ref({
         code: '', name: '', deviationType: '', applyType: '', enabled: '',
@@ -688,7 +701,9 @@
         openMatPicker, confirmMatPick, resetMatQuery, filterMasters,
         qcpDlg, qcpQuery, qcpPickPage, qcpFiltered, qcpPageNum, qcpPageSize, qcpPickRef,
         openQcpPicker, confirmQcpPick, resetQcpQuery,
-        submitForm, onDlgClosed, remarks, flow, remarkMode, dialogTableHeight, pickerTableHeight,
+        submitForm, onDlgClosed, remarks, flow, remarkMode, warningHeadFieldKeys,
+        fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
+        dialogTableHeight, pickerTableHeight,
         tableRef, listCardRef,
       };
     },

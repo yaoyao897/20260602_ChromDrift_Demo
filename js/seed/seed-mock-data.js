@@ -48,16 +48,12 @@
         const mainRtActual = mainRtBase + i * 0.015;
         const lastRt = peaks[peaks.length - 1]?.rt || mainRtActual;
         const newRt = Number((lastRt + 0.85 + i * 0.12).toFixed(3));
-        const newTypicalRt = main
-          ? Number((newRt * Number(main.typicalRt) / mainRtActual).toFixed(4))
-          : Number((Math.max(...(trRows || []).map((t) => Number(t.typicalRt))) + 0.8 + i * 0.15).toFixed(4));
         peaks.push({
           rt: newRt,
           area: Number((1.2 + i * 0.3).toFixed(1)),
           component: i === 0 ? '未知峰' : `新杂峰${i + 1}`,
           isNewImpurity: true,
           isExcessImpurity: i >= 2 ? '是' : '/',
-          typicalRt: newTypicalRt,
           abnormalNote: '顺序异常',
         });
       }
@@ -154,9 +150,9 @@
       rrt: p.typicalRt != null && mainRt
         ? Number((Number(p.rt) / mainRt).toFixed(4))
         : null,
-      typicalRt: p.typicalRt != null ? Number(p.typicalRt) : null,
-      locked: p.typicalRt != null,
-      abnormalNote: p.abnormalNote || (p.typicalRt != null ? '/' : '未匹配到'),
+      typicalRt: p.isNewImpurity ? null : (p.typicalRt != null ? Number(p.typicalRt) : null),
+      locked: !p.isNewImpurity && p.typicalRt != null,
+      abnormalNote: p.abnormalNote || (p.isNewImpurity ? '顺序异常' : (p.typicalRt != null ? '/' : '未匹配到')),
       deviationRange: devRange,
       isNewImpurity: p.isNewImpurity === true,
       isExcessImpurity: p.isExcessImpurity || '/',

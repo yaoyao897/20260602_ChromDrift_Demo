@@ -94,12 +94,21 @@
     return false;
   }
 
+  function rollingColumnKey(det) {
+    if (det?.rt == null || det.rt === '' || Number.isNaN(Number(det.rt))) return null;
+    return Number(Number(det.rt).toFixed(4));
+  }
+
   function deriveTypicalRt(det, details, existingRts) {
-    if (det.typicalRt != null && det.typicalRt !== '' && !Number.isNaN(Number(det.typicalRt))) {
-      return Number(Number(det.typicalRt).toFixed(4));
-    }
-    if (det.isNewImpurity !== true && det.isNewImpurity !== '是') return null;
     const existing = new Set((existingRts || []).map((c) => Number(Number(c).toFixed(4))));
+    const fromSpectrum = rollingColumnKey(det);
+    if (fromSpectrum != null && !existing.has(fromSpectrum)) return fromSpectrum;
+    if (det.isNewImpurity !== true && det.isNewImpurity !== '是') {
+      if (det.typicalRt != null && det.typicalRt !== '' && !Number.isNaN(Number(det.typicalRt))) {
+        return Number(Number(det.typicalRt).toFixed(4));
+      }
+      return null;
+    }
     if (det.rrt != null && !Number.isNaN(Number(det.rrt))) {
       const fromRrt = Number(Number(det.rrt).toFixed(4));
       if (!existing.has(fromRrt)) return fromRrt;

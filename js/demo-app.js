@@ -26,8 +26,12 @@
     showBootError('模块加载失败：未找到 ChromDriftWarningRulePage。');
     return;
   }
-  if (!window.ChromDriftRecognitionPage) {
-    showBootError('模块加载失败：未找到 ChromDriftRecognitionPage。');
+  if (!window.ChromDriftDeepSeekClient) {
+    showBootError('模块加载失败：未找到 ChromDriftDeepSeekClient。');
+    return;
+  }
+  if (!window.ChromDriftRecognitionAiAssistant) {
+    showBootError('模块加载失败：未找到 ChromDriftRecognitionAiAssistant。');
     return;
   }
   if (!window.ChromDriftLedgerGcPage) {
@@ -89,6 +93,8 @@
       LedgerGcPage: ChromDriftLedgerGcPage,
       LedgerLcPage: ChromDriftLedgerLcPage,
       DemoToolbarIconBtn: ChromDriftToolbarIconBtn,
+      DemoFieldRemark: ChromDriftFieldRemark,
+      DemoFieldRemarkList: ChromDriftFieldRemarkList,
     },
     setup() {
       const currentPage = ref('drift-rule');

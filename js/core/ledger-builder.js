@@ -79,6 +79,12 @@
   }
 
   function deriveCol(det, details, existingRts) {
+    if (det.isNewImpurity === true || det.isNewImpurity === '是') {
+      const fromSpectrum = det.rt != null && det.rt !== '' && !Number.isNaN(Number(det.rt))
+        ? Number(Number(det.rt).toFixed(4))
+        : null;
+      if (fromSpectrum != null) return fromSpectrum;
+    }
     if (det.typicalRt != null && det.typicalRt !== '' && !Number.isNaN(Number(det.typicalRt))) {
       return Number(Number(det.typicalRt).toFixed(4));
     }

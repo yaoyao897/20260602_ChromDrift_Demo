@@ -180,6 +180,13 @@
         <template v-else>
           <div class="demo-card ledger-summary-filter">
             <div class="ledger-summary-filter__title">样本过滤</div>
+            <template v-if="remarkMode">
+              <demo-field-remark
+                v-for="fk in summaryFieldKeys"
+                :key="fk"
+                v-bind="fieldRemarkProps('ledgerSummary', fk)"
+              />
+            </template>
             <div v-for="(row, idx) in summaryFilters" :key="idx" class="ledger-summary-filter__row">
               <el-form :inline="true" size="default">
                 <el-form-item label="类型" required>
@@ -257,7 +264,7 @@
         </template>
 
         <el-dialog v-model="catDlg" title="新增分类" width="520px" destroy-on-close>
-          <el-form label-width="100px" size="default" :model="catForm">
+          <el-form label-width="100px" size="default" :model="catForm" class="demo-dialog-form">
             <el-form-item v-if="activeTab === '生产过程'" label="QCP点" required>
               <el-select v-model="catForm.qcpCode" filterable style="width:100%">
                 <el-option
@@ -268,6 +275,10 @@
                 />
               </el-select>
             </el-form-item>
+            <demo-field-remark
+              v-if="remarkMode && activeTab === '生产过程'"
+              v-bind="fieldRemarkProps('ledgerCategory', 'qcpCode')"
+            />
             <el-form-item v-else label="物料编码" required>
               <el-select v-model="catForm.materialCode" filterable style="width:100%">
                 <el-option
@@ -278,6 +289,10 @@
                 />
               </el-select>
             </el-form-item>
+            <demo-field-remark
+              v-if="remarkMode && activeTab !== '生产过程'"
+              v-bind="fieldRemarkProps('ledgerCategory', 'materialCode')"
+            />
           </el-form>
           <template #footer>
             <el-button @click="catDlg = false">取消</el-button>
@@ -292,8 +307,10 @@
       DemoModuleGuideCard: ChromDriftModuleGuideCard,
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
+      DemoFieldRemark: ChromDriftFieldRemark,
     },
     setup() {
+      const summaryFieldKeys = ['applyType', 'materialInfo', 'qcpPoint', 'batchNo'];
       const ledger = ref(ChromDriftStorage.load('ledger-gc-data', clone(SEED_LEDGER_GC)));
       watch(ledger, (v) => ChromDriftStorage.save('ledger-gc-data', v), { deep: true });
 
@@ -622,7 +639,9 @@
         summaryFilters, summaryTypes: SUMMARY_TYPES,
         addSummaryRow, removeSummaryRow, doSummaryQuery, resetSummary,
         summaryRtColumns, summaryRows, summaryDisplayRows, summaryColumns, summaryTableKey, exportSummary,
-        remarks, flow, remarkMode, toast,
+        remarks, flow, remarkMode, summaryFieldKeys,
+        fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
+        toast,
         toggleFullscreen, toggleSummaryFullscreen, cellVal,
       };
     },

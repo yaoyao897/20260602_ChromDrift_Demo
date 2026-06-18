@@ -5,8 +5,8 @@
   const KEY = 'ui:remark-mode';
 
   function readInitial() {
-    const v = ChromDriftStorage.load(KEY, true);
-    return v !== false;
+    const v = ChromDriftStorage.load(KEY, false);
+    return v === true;
   }
 
   const state = Vue.ref(readInitial());

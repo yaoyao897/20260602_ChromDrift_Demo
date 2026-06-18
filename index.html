@@ -16,6 +16,7 @@
     <aside class="app-aside">
       <div class="app-aside__logo">QMS · 色谱漂移</div>
       <el-menu
+        :key="currentPage"
         :default-active="currentPage"
         :default-openeds="defaultOpeneds"
         background-color="#FFFFFF"

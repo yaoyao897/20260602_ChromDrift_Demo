@@ -1,6 +1,6 @@
 /**
  * VXE 表格容器 · §4.3 DemoVxeGrid 封装（vxe-table + 列插槽）
- * 高度：ResizeObserver 占满列表区剩余视口（行多时在表体内滚动）
+ * 高度：按 .list-body 剩余高度占满（行多时在表体内滚动）
  */
 (function () {
   const { ref, onMounted, onBeforeUnmount, nextTick, watch } = Vue;
@@ -31,15 +31,32 @@
         <el-empty v-else :description="emptyText" />
       </div>
     `,
-    setup(props, { expose }) {
+    setup(props, { expose, attrs }) {
       const wrapRef = ref(null);
       const tableRef = ref(null);
       const gridHeight = ref(280);
       let resizeObserver = null;
+      const observed = new Set();
+
+      function getListBodyEl() {
+        return wrapRef.value?.closest('.list-body') || null;
+      }
+
+      function measureHeight() {
+        const bodyEl = getListBodyEl();
+        if (bodyEl) {
+          const pagerEl = bodyEl.querySelector('.list-pager');
+          const pagerH = pagerEl ? pagerEl.offsetHeight : 0;
+          return Math.max(props.minHeight, bodyEl.clientHeight - pagerH);
+        }
+        if (wrapRef.value) {
+          return Math.max(props.minHeight, wrapRef.value.clientHeight);
+        }
+        return props.minHeight;
+      }
 
       function updateGridHeight() {
-        if (!wrapRef.value) return;
-        gridHeight.value = Math.max(props.minHeight, wrapRef.value.clientHeight);
+        gridHeight.value = measureHeight();
         nextTick(() => tableRef.value?.recalculate?.());
       }
 
@@ -50,19 +67,38 @@
         });
       }
 
+      function observeEl(el) {
+        if (!el || !resizeObserver || observed.has(el)) return;
+        observed.add(el);
+        resizeObserver.observe(el);
+      }
+
+      function bindObservers() {
+        observeEl(wrapRef.value);
+        observeEl(getListBodyEl());
+        observeEl(wrapRef.value?.closest('.list-area'));
+        observeEl(wrapRef.value?.closest('.list-with-remark'));
+        observeEl(wrapRef.value?.closest('.page-module'));
+      }
+
       onMounted(() => {
-        scheduleUpdate();
         resizeObserver = new ResizeObserver(scheduleUpdate);
-        if (wrapRef.value) resizeObserver.observe(wrapRef.value);
-        const bodyEl = wrapRef.value?.closest('.list-body');
-        if (bodyEl) resizeObserver.observe(bodyEl);
+        bindObservers();
+        scheduleUpdate();
         window.addEventListener('resize', scheduleUpdate);
       });
 
-      watch(() => props.showTable, scheduleUpdate);
+      watch(() => attrs.data, scheduleUpdate, { deep: true });
+      watch(() => props.showTable, () => {
+        nextTick(() => {
+          bindObservers();
+          scheduleUpdate();
+        });
+      });
 
       onBeforeUnmount(() => {
         resizeObserver?.disconnect();
+        observed.clear();
         window.removeEventListener('resize', scheduleUpdate);
       });
 

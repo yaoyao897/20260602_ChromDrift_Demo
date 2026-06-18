@@ -55,26 +55,32 @@
     wr('wr-2', 'WR-GC-R01', 'GC原材料-RM001', '原材料', {
       uclValue: 0.08, uslValue: 0.1, createdAt: '2025-05-08 14:30:00',
       materials: [matRow('RM001', '原料X', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     wr('wr-9', 'WR-GC-R02', 'GC原材料-RM003', '原材料', {
       uclValue: 0.07, createdAt: '2025-05-09 14:30:00',
       materials: [matRow('RM003', '原料Z', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     wr('wr-10', 'WR-GC-R03', 'GC原材料-RM004', '原材料', {
       uclValue: 0.09, createdAt: '2025-05-10 14:30:00',
       materials: [matRow('RM004', '原料W', 'CP', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP02', '精制步骤')],
     }),
     wr('wr-6', 'WR-GC-M01', 'GC生产物料-CP001', '生产物料', {
       uclValue: 0.03, createdAt: '2025-05-12 11:00:00',
       materials: [matRow('CP001', '成品A', '500g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     wr('wr-11', 'WR-GC-M02', 'GC生产物料-CP002', '生产物料', {
       uclValue: 0.035, createdAt: '2025-05-13 11:00:00',
       materials: [matRow('CP002', '成品B', '1kg', '成品', '袋')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     wr('wr-12', 'WR-GC-M03', 'GC生产物料-CP003', '生产物料', {
       uclValue: 0.025, createdAt: '2025-05-14 11:00:00',
       materials: [matRow('CP003', '成品C', '250g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     wr('wr-4', 'WR-LC-P01', 'LC生产过程-CP002精制', '生产过程', {
       uclValue: 0.05, createdAt: '2025-06-01 10:30:00',
@@ -94,26 +100,32 @@
     wr('wr-5', 'WR-LC-R01', 'LC原材料-RM002', '原材料', {
       uclValue: 0.08, uslValue: 0.1, createdAt: '2025-05-28 14:00:00',
       materials: [matRow('RM002', '原料Y', 'CP', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     wr('wr-15', 'WR-LC-R02', 'LC原材料-RM003', '原材料', {
       uclValue: 0.075, createdAt: '2025-05-29 14:00:00',
       materials: [matRow('RM003', '原料Z', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     wr('wr-16', 'WR-LC-R03', 'LC原材料-RM001', '原材料', {
       uclValue: 0.085, createdAt: '2025-05-30 14:00:00',
       materials: [matRow('RM001', '原料X', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP02', '精制步骤')],
     }),
     wr('wr-19', 'WR-LC-M01', 'LC生产物料-CP002', '生产物料', {
       uclValue: 0.03, lclValue: 0.01, createdAt: '2025-05-20 11:00:00',
       materials: [matRow('CP002', '成品B', '1kg', '成品', '袋')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     wr('wr-17', 'WR-LC-M02', 'LC生产物料-CP001', '生产物料', {
       uclValue: 0.028, createdAt: '2025-05-21 11:00:00',
       materials: [matRow('CP001', '成品A', '500g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     wr('wr-18', 'WR-LC-M03', 'LC生产物料-CP003', '生产物料', {
       uclValue: 0.032, createdAt: '2025-05-22 11:00:00',
       materials: [matRow('CP003', '成品C', '250g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
   ];
 

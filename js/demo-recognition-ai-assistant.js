@@ -158,9 +158,10 @@
 
   function buildChatContext(record) {
     if (!record) {
-      return { toolProfile: 'chromDriftRecognition', pageTitle: '图谱识别', record: {}, details: [] };
+      return { assistant: 'recognition', toolProfile: 'chromDriftRecognition', pageTitle: '图谱识别', record: {}, details: [] };
     }
     return {
+      assistant: 'recognition',
       toolProfile: 'chromDriftRecognition',
       pageTitle: '图谱识别',
       record: {
@@ -208,11 +209,29 @@
     return out;
   }
 
+  function isBusinessMetaQuestion(text) {
+    return /数据源|数据来源|列表.*来源|字段.*来源|取值|从哪来|localStorage|种子|备注|联动|当前页/.test(text || '');
+  }
+
   function replyMock(userText, record, mode) {
     const t = (userText || '').trim();
     if (!t) return { content: '请输入问题，或点击下方快捷提问。' };
 
-    if (/解读|异常|说明|什么意思/.test(t)) return buildExceptionReport(record, mode);
+    if (isBusinessMetaQuestion(t) && window.ChromDriftAiKnowledge) {
+      return ChromDriftAiKnowledge.replyMock(
+        t,
+        ChromDriftAiKnowledge.buildGlobalChatContext({ currentPage: 'recognition' }),
+      );
+    }
+
+    if (/解读|异常|说明|什么意思/.test(t)) {
+      if (!(record?.details || []).length) {
+        return {
+          content: '当前尚无计算明细。请先上传谱图并点击「计算」，再让我解读异常说明；若问列表数据来源或字段取值，请直接说明（例如「列表数据从哪来」）。',
+        };
+      }
+      return buildExceptionReport(record, mode);
+    }
     if (/锁定|重算|重新计算|建议/.test(t)) {
       const r = buildLockRecalcAdvice(record, mode);
       return { ...r, actions: mapAdviceActions(r.actions, mode) };
@@ -414,12 +433,40 @@
 
         const mock = replyMock(text, props.record, props.mode);
 
+        if (isBusinessMetaQuestion(text) && window.ChromDriftAiKnowledge) {
+          const gCtx = ChromDriftAiKnowledge.buildGlobalChatContext({ currentPage: 'recognition' });
+          const metaMock = ChromDriftAiKnowledge.replyMock(text, gCtx);
+          try {
+            if (aiMode.value === 'proxy' && window.ChromDriftDeepSeekClient) {
+              const data = await ChromDriftDeepSeekClient.chat(text, history, gCtx, {
+                useTools: false,
+                assistant: 'global',
+              });
+              loading.value = false;
+              let reply = (data.reply || '').replace(/\*\*/g, '');
+              if (!reply?.trim()) reply = metaMock.content;
+              pushMsg('assistant', reply || metaMock.content);
+              return;
+            }
+          } catch (err) {
+            loading.value = false;
+            aiMode.value = 'mock';
+            aiConnectHint.value = err.message;
+            pushMsg('assistant', `${metaMock.content}\n\n（DeepSeek：${err.message}）`);
+            return;
+          }
+          loading.value = false;
+          pushMsg('assistant', metaMock.content);
+          return;
+        }
+
         try {
           if (aiMode.value === 'proxy' && window.ChromDriftDeepSeekClient) {
             const data = await ChromDriftDeepSeekClient.chat(
               text,
               history,
               buildChatContext(props.record),
+              { useTools: true, assistant: 'recognition' },
             );
             loading.value = false;
             let actions = convertProxyActions(data.actions, props.record);

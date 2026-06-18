@@ -86,25 +86,25 @@
     { key: 'gc-proc-2', driftRuleId: 'dr-7', warningRuleId: 'wr-7', ledgerType: 'GC', applyType: '生产过程', materialInfo: 'CP001', qcpPoint: 'QCP03', materialCode: '', productCode: 'CP001', mainRtBase: 4.68, batchStart: 2025042901, baseDate: '2025-04-29', instrumentCode: 'GC-001', newImpurityBatches: [0] },
     { key: 'gc-proc-3', driftRuleId: 'dr-8', warningRuleId: 'wr-8', ledgerType: 'GC', applyType: '生产过程', materialInfo: 'CP002', qcpPoint: 'QCP01', materialCode: '', productCode: 'CP002', mainRtBase: 5.48, batchStart: 2025050201, baseDate: '2025-05-02', instrumentCode: 'GC-002' },
     // GC 原材料
-    { key: 'gc-rm-1', driftRuleId: 'dr-2', warningRuleId: 'wr-2', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM001', qcpPoint: '', materialCode: 'RM001', productCode: '', mainRtBase: 5.18, batchStart: 2025042001, baseDate: '2025-04-20', instrumentCode: 'GC-002' },
-    { key: 'gc-rm-2', driftRuleId: 'dr-9', warningRuleId: 'wr-9', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM003', qcpPoint: '', materialCode: 'RM003', productCode: '', mainRtBase: 4.35, batchStart: 2025042201, baseDate: '2025-04-22', instrumentCode: 'GC-002' },
-    { key: 'gc-rm-3', driftRuleId: 'dr-10', warningRuleId: 'wr-10', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM004', qcpPoint: '', materialCode: 'RM004', productCode: '', mainRtBase: 6.2, batchStart: 2025042401, baseDate: '2025-04-24', instrumentCode: 'GC-002', newImpurityBatches: [2] },
+    { key: 'gc-rm-1', driftRuleId: 'dr-2', warningRuleId: 'wr-2', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM001', qcpPoint: 'QCP01', materialCode: 'RM001', productCode: '', mainRtBase: 5.18, batchStart: 2025042001, baseDate: '2025-04-20', instrumentCode: 'GC-002' },
+    { key: 'gc-rm-2', driftRuleId: 'dr-9', warningRuleId: 'wr-9', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM003', qcpPoint: 'QCP01', materialCode: 'RM003', productCode: '', mainRtBase: 4.35, batchStart: 2025042201, baseDate: '2025-04-22', instrumentCode: 'GC-002' },
+    { key: 'gc-rm-3', driftRuleId: 'dr-10', warningRuleId: 'wr-10', ledgerType: 'GC', applyType: '原材料', materialInfo: 'RM004', qcpPoint: 'QCP02', materialCode: 'RM004', productCode: '', mainRtBase: 6.2, batchStart: 2025042401, baseDate: '2025-04-24', instrumentCode: 'GC-002', newImpurityBatches: [2] },
     // GC 生产物料
-    { key: 'gc-pm-1', driftRuleId: 'dr-4', warningRuleId: 'wr-6', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP001', qcpPoint: '', materialCode: 'CP001', productCode: 'CP001', mainRtBase: 3.65, batchStart: 2025041501, baseDate: '2025-04-15', instrumentCode: 'GC-001' },
-    { key: 'gc-pm-2', driftRuleId: 'dr-11', warningRuleId: 'wr-11', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP002', qcpPoint: '', materialCode: 'CP002', productCode: 'CP002', mainRtBase: 3.25, batchStart: 2025041601, baseDate: '2025-04-16', instrumentCode: 'GC-001' },
-    { key: 'gc-pm-3', driftRuleId: 'dr-12', warningRuleId: 'wr-12', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP003', qcpPoint: '', materialCode: 'CP003', productCode: 'CP003', mainRtBase: 4.48, batchStart: 2025041701, baseDate: '2025-04-17', instrumentCode: 'GC-001', newImpurityBatches: [0] },
+    { key: 'gc-pm-1', driftRuleId: 'dr-4', warningRuleId: 'wr-6', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP001', qcpPoint: 'QCP04', materialCode: 'CP001', productCode: 'CP001', mainRtBase: 3.65, batchStart: 2025041501, baseDate: '2025-04-15', instrumentCode: 'GC-001' },
+    { key: 'gc-pm-2', driftRuleId: 'dr-11', warningRuleId: 'wr-11', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP002', qcpPoint: 'QCP04', materialCode: 'CP002', productCode: 'CP002', mainRtBase: 3.25, batchStart: 2025041601, baseDate: '2025-04-16', instrumentCode: 'GC-001' },
+    { key: 'gc-pm-3', driftRuleId: 'dr-12', warningRuleId: 'wr-12', ledgerType: 'GC', applyType: '生产物料', materialInfo: 'CP003', qcpPoint: 'QCP04', materialCode: 'CP003', productCode: 'CP003', mainRtBase: 4.48, batchStart: 2025041701, baseDate: '2025-04-17', instrumentCode: 'GC-001', newImpurityBatches: [0] },
     // LC 生产过程
     { key: 'lc-proc-1', driftRuleId: 'dr-3', warningRuleId: 'wr-4', ledgerType: 'LC', applyType: '生产过程', materialInfo: 'CP002', qcpPoint: 'QCP02', materialCode: '', productCode: 'CP002', mainRtBase: 2.51, batchStart: 2025060101, baseDate: '2025-06-01', instrumentCode: 'LC-001' },
     { key: 'lc-proc-2', driftRuleId: 'dr-13', warningRuleId: 'wr-13', ledgerType: 'LC', applyType: '生产过程', materialInfo: 'CP002', qcpPoint: 'QCP04', materialCode: '', productCode: 'CP002', mainRtBase: 3.02, batchStart: 2025060201, baseDate: '2025-06-02', instrumentCode: 'LC-001' },
     { key: 'lc-proc-3', driftRuleId: 'dr-14', warningRuleId: 'wr-14', ledgerType: 'LC', applyType: '生产过程', materialInfo: 'CP001', qcpPoint: 'QCP02', materialCode: '', productCode: 'CP001', mainRtBase: 2.82, batchStart: 2025060301, baseDate: '2025-06-03', instrumentCode: 'LC-001', newImpurityBatches: [1, 2] },
     // LC 原材料
-    { key: 'lc-rm-1', driftRuleId: 'dr-5', warningRuleId: 'wr-5', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM002', qcpPoint: '', materialCode: 'RM002', productCode: '', mainRtBase: 5.92, batchStart: 2025052801, baseDate: '2025-05-28', instrumentCode: 'LC-001' },
-    { key: 'lc-rm-2', driftRuleId: 'dr-15', warningRuleId: 'wr-15', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM003', qcpPoint: '', materialCode: 'RM003', productCode: '', mainRtBase: 6.32, batchStart: 2025052901, baseDate: '2025-05-29', instrumentCode: 'LC-001' },
-    { key: 'lc-rm-3', driftRuleId: 'dr-16', warningRuleId: 'wr-16', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM001', qcpPoint: '', materialCode: 'RM001', productCode: '', mainRtBase: 4.58, batchStart: 2025053001, baseDate: '2025-05-30', instrumentCode: 'LC-001', newImpurityBatches: [2] },
+    { key: 'lc-rm-1', driftRuleId: 'dr-5', warningRuleId: 'wr-5', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM002', qcpPoint: 'QCP01', materialCode: 'RM002', productCode: '', mainRtBase: 5.92, batchStart: 2025052801, baseDate: '2025-05-28', instrumentCode: 'LC-001' },
+    { key: 'lc-rm-2', driftRuleId: 'dr-15', warningRuleId: 'wr-15', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM003', qcpPoint: 'QCP01', materialCode: 'RM003', productCode: '', mainRtBase: 6.32, batchStart: 2025052901, baseDate: '2025-05-29', instrumentCode: 'LC-001' },
+    { key: 'lc-rm-3', driftRuleId: 'dr-16', warningRuleId: 'wr-16', ledgerType: 'LC', applyType: '原材料', materialInfo: 'RM001', qcpPoint: 'QCP02', materialCode: 'RM001', productCode: '', mainRtBase: 4.58, batchStart: 2025053001, baseDate: '2025-05-30', instrumentCode: 'LC-001', newImpurityBatches: [2] },
     // LC 生产物料
-    { key: 'lc-pm-1', driftRuleId: 'dr-6', warningRuleId: 'wr-19', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP002', qcpPoint: '', materialCode: 'CP002', productCode: 'CP002', mainRtBase: 3.65, batchStart: 2025052001, baseDate: '2025-05-20', instrumentCode: 'LC-001' },
-    { key: 'lc-pm-2', driftRuleId: 'dr-17', warningRuleId: 'wr-17', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP001', qcpPoint: '', materialCode: 'CP001', productCode: 'CP001', mainRtBase: 3.42, batchStart: 2025052101, baseDate: '2025-05-21', instrumentCode: 'LC-001', newImpurityBatches: [2] },
-    { key: 'lc-pm-3', driftRuleId: 'dr-18', warningRuleId: 'wr-18', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP003', qcpPoint: '', materialCode: 'CP003', productCode: 'CP003', mainRtBase: 3.88, batchStart: 2025052201, baseDate: '2025-05-22', instrumentCode: 'LC-001' },
+    { key: 'lc-pm-1', driftRuleId: 'dr-6', warningRuleId: 'wr-19', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP002', qcpPoint: 'QCP04', materialCode: 'CP002', productCode: 'CP002', mainRtBase: 3.65, batchStart: 2025052001, baseDate: '2025-05-20', instrumentCode: 'LC-001' },
+    { key: 'lc-pm-2', driftRuleId: 'dr-17', warningRuleId: 'wr-17', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP001', qcpPoint: 'QCP04', materialCode: 'CP001', productCode: 'CP001', mainRtBase: 3.42, batchStart: 2025052101, baseDate: '2025-05-21', instrumentCode: 'LC-001', newImpurityBatches: [2] },
+    { key: 'lc-pm-3', driftRuleId: 'dr-18', warningRuleId: 'wr-18', ledgerType: 'LC', applyType: '生产物料', materialInfo: 'CP003', qcpPoint: 'QCP04', materialCode: 'CP003', productCode: 'CP003', mainRtBase: 3.88, batchStart: 2025052201, baseDate: '2025-05-22', instrumentCode: 'LC-001' },
   ];
 
   function buildScenarios() {
@@ -270,6 +270,19 @@
   window.ChromDriftSeedLedgerGc = { SEED_LEDGER_GC: ledgers.SEED_LEDGER_GC };
   window.ChromDriftSeedLedgerLc = { SEED_LEDGER_LC: ledgers.SEED_LEDGER_LC };
   window.ChromDriftMockSpectra = { MOCK_SPECTRUM_FILES: spectrumFiles };
+  /** 数据比对 · 默认样本过滤行（与台账 Mock 批号对齐，打开页即可并集矩阵） */
+  window.ChromDriftSeedCompareDefaults = {
+    GC: [
+      { applyType: '生产过程', materialCode: 'CP001', qcpPoint: 'QCP01', batchNo: '2025042801' },
+      { applyType: '生产过程', materialCode: 'CP001', qcpPoint: 'QCP01', batchNo: '2025042802' },
+      { applyType: '生产物料', materialCode: 'CP001', qcpPoint: 'QCP04', batchNo: '2025041501' },
+    ],
+    LC: [
+      { applyType: '生产过程', materialCode: 'CP002', qcpPoint: 'QCP02', batchNo: '2025060101' },
+      { applyType: '生产过程', materialCode: 'CP001', qcpPoint: 'QCP02', batchNo: '2025060301' },
+      { applyType: '生产物料', materialCode: 'CP002', qcpPoint: 'QCP04', batchNo: '2025052001' },
+    ],
+  };
   window.ChromDriftSeedRollingMeta = {
     ROLLING_SCENARIO_KEYS: SCENARIO_DEFS
       .filter((d) => resolveImpurityBatches(d).length)

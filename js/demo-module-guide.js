@@ -40,7 +40,7 @@
     name: 'DemoModuleGuideCard',
     props: { guide: { type: Object, default: null } },
     template: `
-      <div v-if="guide" class="demo-card demo-module-guide">
+      <section v-if="guide" class="demo-module-guide">
         <div class="demo-module-guide__header">
           <span class="demo-module-guide__title">④ 模块说明与数据流转 · {{ guide.title }}</span>
           <el-button link type="primary" @click="toggleCollapse">{{ collapsed ? '展开' : '收起' }}</el-button>
@@ -67,7 +67,7 @@
             <div class="demo-module-guide__mermaid" ref="mermaidHost"></div>
           </div>
         </div>
-      </div>
+      </section>
     `,
     setup(props) {
       const mermaidHost = ref(null);

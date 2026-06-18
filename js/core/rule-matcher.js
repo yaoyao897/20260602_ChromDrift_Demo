@@ -45,9 +45,7 @@
       if (rule.applyType !== head.applyType) return;
       const score = scoreMaterials(rule.materials, head.materialInfo)
         + scoreQcp(rule.qcpPoints, head.qcpPoint);
-      if (head.applyType === '生产过程' && !head.qcpPoint && !rule.qcpPoints?.length) {
-        return;
-      }
+      if (!head.qcpPoint && rule.qcpPoints?.length) return;
       if (score <= 0 && (rule.materials?.length || rule.qcpPoints?.length)) return;
       candidates.push({ rule, score, createdAt: rule.createdAt });
     });
@@ -61,6 +59,7 @@
       if (rule.applyType !== head.applyType) return;
       const score = scoreMaterials(rule.materials, head.materialInfo)
         + scoreQcp(rule.qcpPoints, head.qcpPoint);
+      if (!head.qcpPoint && rule.qcpPoints?.length) return;
       if (score <= 0 && (rule.materials?.length || rule.qcpPoints?.length)) return;
       candidates.push({ rule, score, createdAt: rule.createdAt });
     });

@@ -70,7 +70,7 @@
   window.ChromDriftRecognitionPage = {
     name: 'RecognitionPage',
     template: `
-      <div class="recognition-page">
+      <div class="page-module recognition-page">
         <demo-query-panel :model="query" @submit="doQuery">
           <demo-query-field label="台账类型">
             <el-select v-model="query.ledgerType" clearable placeholder="全部">
@@ -94,7 +94,7 @@
           <demo-query-field label="批号">
             <el-input v-model="query.batchNo" clearable placeholder="模糊" @keyup.enter="doQuery" />
           </demo-query-field>
-          <demo-query-field label="QCP点">
+          <demo-query-field label="采样点">
             <el-input v-model="query.qcpPoint" clearable placeholder="模糊" @keyup.enter="doQuery" />
           </demo-query-field>
           <demo-query-field label="规则名称">
@@ -129,7 +129,14 @@
             />
           </demo-query-field>
           <template #actions>
-            <el-button type="primary" native-type="submit">查询</el-button>
+            <el-dropdown split-button type="primary" @click="doQuery">
+              查询
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="ElMessage.info('查询方案（Demo 占位）')">默认查询方案</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button @click="resetQuery">重置</el-button>
           </template>
         </demo-query-panel>
@@ -137,74 +144,79 @@
         <demo-module-guide-card v-if="remarkMode" :guide="flow"></demo-module-guide-card>
 
         <div class="list-with-remark">
-          <div class="demo-card list-main" ref="listCardRef">
+          <section class="list-area list-main" ref="listCardRef">
             <div class="list-toolbar">
-              <span class="list-toolbar__title">数据列表</span>
+              <div class="list-toolbar__info">
+                <span class="list-toolbar__title">图谱识别</span>
+                <span class="list-toolbar__sel">已选: {{ selection.length }} (当页已选: {{ pageSelectedCount }})</span>
+              </div>
               <div class="list-toolbar__actions">
                 <el-button type="primary" @click="openAdd">新增</el-button>
                 <el-button type="danger" @click="batchDelete">批量删除</el-button>
                 <el-button @click="exportData">导出数据</el-button>
-                <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
-                <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
-                <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
-                <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                <div class="list-toolbar__icons">
+                  <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
+                  <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
+                  <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
+                  <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                </div>
               </div>
             </div>
 
-            <vxe-table
-              ref="tableRef"
-              class="demo-table demo-table--wide"
-              :data="pagedRows"
-              border stripe
-              height="420"
-              :column-config="{ resizable: true, minWidth: 80 }"
-              :row-config="{ isHover: true, keyField: 'id', isCurrent: true }"
-              :checkbox-config="{ reserve: true, highlight: true }"
-              :scroll-x="{ enabled: true }"
-              empty-text="暂无数据"
-              @checkbox-change="onSelChange"
-              @checkbox-all="onSelChange"
-            >
-              <vxe-column type="checkbox" width="42" fixed="left" />
-              <vxe-column type="seq" title="序号" width="55" fixed="left" />
-              <vxe-column field="ledgerType" title="台账类型" min-width="80" show-overflow />
-              <vxe-column field="applyType" title="类型" min-width="100" show-overflow />
-              <vxe-column field="fileName" title="文件名称" min-width="140" show-overflow />
-              <vxe-column field="sampleName" title="样品名称" min-width="140" show-overflow />
-              <vxe-column field="instrumentCode" title="仪器编号" min-width="100" show-overflow />
-              <vxe-column field="instrumentName" title="仪器名称" min-width="120" show-overflow />
-              <vxe-column field="batchNo" title="批号" min-width="100" show-overflow />
-              <vxe-column field="qcpPoint" title="QCP点" min-width="90" show-overflow />
-              <vxe-column field="ruleName" title="规则名称" min-width="140" show-overflow />
-              <vxe-column field="hasNewImpurity" title="是否存在新杂" min-width="110" show-overflow />
-              <vxe-column field="attachmentName" title="附件" min-width="80" show-overflow />
-              <vxe-column field="remark" title="备注" min-width="100" show-overflow />
-              <vxe-column field="fileSavedAt" title="文件保存时间" min-width="150" show-overflow class-name="col-secondary" />
-              <vxe-column field="createdAt" title="创建时间" min-width="150" show-overflow class-name="col-secondary" />
-              <vxe-column field="createdBy" title="创建人" min-width="80" show-overflow />
-              <vxe-column title="操作" width="80" fixed="right">
-                <template #default="{ row }">
-                  <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-                </template>
-              </vxe-column>
-            </vxe-table>
-
-            <vxe-pager
-              v-model:current-page="pageNum"
-              v-model:page-size="pageSize"
-              :page-sizes="pageSizes"
-              :total="filteredRows.length"
-              :layouts="['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'Jump']"
-              style="margin-top:12px"
-            />
-          </div>
+            <div class="list-body">
+              <demo-vxe-wrap
+                ref="vxeWrapRef"
+                :show-table="pagedRows.length > 0"
+                :data="pagedRows"
+                :column-config="{ resizable: true, minWidth: 80 }"
+                :row-config="{ isHover: true, keyField: 'id' }"
+                :checkbox-config="{ reserve: true, highlight: true }"
+                @checkbox-change="onSelChange"
+                @checkbox-all="onSelChange"
+              >
+                <vxe-column type="checkbox" width="48" fixed="left" />
+                <vxe-column type="seq" title="序号" width="60" fixed="left" />
+                <vxe-column field="ledgerType" title="台账类型" width="80" show-overflow />
+                <vxe-column field="applyType" title="类型" width="100" show-overflow />
+                <vxe-column field="fileName" title="文件名称" width="140" show-overflow />
+                <vxe-column field="sampleName" title="样品名称" width="140" show-overflow />
+                <vxe-column field="instrumentCode" title="仪器编号" width="100" show-overflow />
+                <vxe-column field="instrumentName" title="仪器名称" width="120" show-overflow />
+                <vxe-column field="batchNo" title="批号" width="100" show-overflow />
+                <vxe-column field="qcpPoint" title="采样点" width="90" show-overflow />
+                <vxe-column field="ruleName" title="规则名称" width="140" show-overflow />
+                <vxe-column field="hasNewImpurity" title="是否存在新杂" width="110" show-overflow />
+                <vxe-column field="attachmentName" title="附件" width="80" show-overflow />
+                <vxe-column field="remark" title="备注" width="100" show-overflow />
+                <vxe-column field="fileSavedAt" title="文件保存时间" width="150" show-overflow class-name="col-secondary" />
+                <vxe-column field="createdAt" title="创建时间" width="150" show-overflow class-name="col-secondary" />
+                <vxe-column field="createdBy" title="创建人" width="80" show-overflow />
+                <vxe-column title="操作" width="80" fixed="right">
+                  <template #default="{ row }">
+                    <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                  </template>
+                </vxe-column>
+              </demo-vxe-wrap>
+              <div class="list-pager">
+                <el-pagination
+                  v-model:current-page="pageNum"
+                  v-model:page-size="pageSize"
+                  :page-sizes="pageSizes"
+                  :total="filteredRows.length"
+                  layout="prev, pager, next, sizes, jumper, ->, total"
+                >
+                  <template #total="{ total }">共 {{ total }} 条记录</template>
+                </el-pagination>
+              </div>
+            </div>
+          </section>
           <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
         </div>
 
         <!-- 新增 / 复核 -->
         <el-dialog
           v-model="addDlg"
-          class="demo-dialog demo-dialog--recognition-calc"
+          class="demo-dialog demo-dialog--biz demo-dialog--recognition-calc"
           :title="addDialogTitle"
           width="1380px"
           top="4vh"
@@ -291,8 +303,8 @@
                   <el-input v-model="form.batchNo" />
                 </el-form-item>
               </el-col>
-              <el-col v-if="showQcp" :span="8">
-                <el-form-item label="QCP点" required>
+              <el-col :span="8">
+                <el-form-item label="采样点" required>
                   <el-select v-model="form.qcpPoint" filterable clearable style="width:100%" @change="onHeadChange">
                     <el-option v-for="q in qcpOptions" :key="q.qcpCode" :label="q.qcpCode + ' ' + q.qcpName" :value="q.qcpCode" />
                   </el-select>
@@ -428,7 +440,7 @@
         </el-dialog>
 
         <!-- 详情 -->
-        <el-dialog v-model="detailDlg" class="demo-dialog" title="详情" width="1200px" destroy-on-close>
+        <el-dialog v-model="detailDlg" class="demo-dialog demo-dialog--biz" title="详情" width="1200px" destroy-on-close>
           <el-descriptions v-if="detailRow" :column="3" border size="default" class="demo-detail-desc">
             <el-descriptions-item label="台账类型">{{ detailRow.ledgerType }}</el-descriptions-item>
             <el-descriptions-item label="类型">{{ detailRow.applyType }}</el-descriptions-item>
@@ -437,7 +449,7 @@
             <el-descriptions-item label="仪器编号">{{ detailRow.instrumentCode }}</el-descriptions-item>
             <el-descriptions-item label="仪器名称">{{ detailRow.instrumentName }}</el-descriptions-item>
             <el-descriptions-item label="批号">{{ detailRow.batchNo }}</el-descriptions-item>
-            <el-descriptions-item label="QCP点">{{ detailRow.qcpPoint || '/' }}</el-descriptions-item>
+            <el-descriptions-item label="采样点">{{ detailRow.qcpPoint || '/' }}</el-descriptions-item>
             <el-descriptions-item label="规则名称">{{ detailRow.ruleName }}</el-descriptions-item>
             <el-descriptions-item label="物料信息">{{ detailRow.materialInfo }}</el-descriptions-item>
             <el-descriptions-item label="预警规则名称">{{ detailRow.warningRuleName }}</el-descriptions-item>
@@ -488,6 +500,7 @@
       DemoFieldRemark: ChromDriftFieldRemark,
       DemoFieldRemarkList: ChromDriftFieldRemarkList,
       DemoRecognitionAiAssistant: ChromDriftRecognitionAiAssistant,
+      DemoVxeWrap: ChromDriftVxeWrap,
     },
     setup() {
       const { ref, computed, watch } = Vue;
@@ -516,7 +529,7 @@
       const pageNum = ref(1);
       const pageSize = ref(10);
       const selection = ref([]);
-      const tableRef = ref(null);
+      const vxeWrapRef = ref(null);
       const listCardRef = ref(null);
 
       const addDlg = ref(false);
@@ -538,7 +551,7 @@
       const flow = computed(() => ChromDriftRemarks.getPageFlow('recognition'));
       const remarkMode = ChromDriftRemarkMode.state;
 
-      const showQcp = computed(() => form.value.applyType === '生产过程');
+      const sp = ChromDriftEnums.SAMPLE_POINT;
       const addDialogTitle = computed(() => (isRecheckMode.value ? '复核（AI 建议）' : '新增'));
       const aiCalcRecord = computed(() => ({
         ...form.value,
@@ -597,6 +610,25 @@
         return filteredRows.value.slice(start, start + pageSize.value);
       });
 
+      const pageSelectedCount = computed(() => {
+        const pageIds = new Set(pagedRows.value.map((r) => r.id));
+        return selection.value.filter((id) => pageIds.has(id)).length;
+      });
+
+      function getTable() {
+        return vxeWrapRef.value?.getTable?.() || null;
+      }
+
+      function getTableSelection() {
+        const t = getTable();
+        if (!t?.getCheckboxRecords) return [];
+        const cur = t.getCheckboxRecords() || [];
+        const reserved = t.getCheckboxReserveRecords?.() || [];
+        const map = new Map();
+        [...reserved, ...cur].forEach((r) => map.set(r.id, r));
+        return [...map.values()];
+      }
+
       function doQuery() {
         appliedQuery.value = { ...query.value };
         pageNum.value = 1;
@@ -616,7 +648,8 @@
       }
 
       function onSelChange() {
-        selection.value = tableRef.value?.getCheckboxRecords() || [];
+        const rows = getTableSelection();
+        selection.value = rows.map((r) => r.id);
       }
 
       function toast(msg) {
@@ -907,7 +940,7 @@
       }
 
       function batchDelete() {
-        const rows = tableRef.value?.getCheckboxRecords() || [];
+        const rows = getTableSelection();
         if (!rows.length) {
           ElMessage.warning('请先勾选要删除的行');
           return;
@@ -917,16 +950,15 @@
         }).then(() => {
           const ids = new Set(rows.map((r) => r.id));
           records.value = records.value.filter((r) => !ids.has(r.id));
-          tableRef.value?.clearCheckboxRow();
           selection.value = [];
+          getTable()?.clearCheckboxRow();
+          getTable()?.clearCheckboxReserve?.();
           ElMessage.success('删除成功');
         }).catch(() => {});
       }
 
       function exportData() {
-        const rows = tableRef.value?.getCheckboxRecords()?.length
-          ? tableRef.value.getCheckboxRecords()
-          : filteredRows.value;
+        const rows = getTableSelection().length ? getTableSelection() : filteredRows.value;
         if (!rows.length) {
           ElMessage.warning('无数据可导出');
           return;
@@ -948,10 +980,11 @@
       return {
         query, doQuery, resetQuery, refreshList,
         ledgerTypes: LEDGER_TYPES, applyTypes: APPLY_TYPES, pageSizes: PAGE_SIZES,
-        pageNum, pageSize, pagedRows, filteredRows,
-        tableRef, listCardRef, onSelChange, batchDelete, exportData,
+        pageNum, pageSize, pagedRows, filteredRows, pageSelectedCount,
+        vxeWrapRef, listCardRef, selection, onSelChange, batchDelete, exportData,
+        ElMessage,
         aiCalcRecord, onAiApplyLocks, addDialogTitle,
-        openAdd, addDlg, form, showQcp, qcpOptions, instruments: SEED_INSTRUMENTS,
+        openAdd, addDlg, form, sp, qcpOptions, instruments: SEED_INSTRUMENTS,
         exampleSpectra: TEST_SPECTRA,
         loadExample, downloadExample,
         onFilePick, onAttachPick, onHeadChange, onInstrumentChange,

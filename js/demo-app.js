@@ -30,6 +30,14 @@
     showBootError('模块加载失败：未找到 ChromDriftDeepSeekClient。');
     return;
   }
+  if (!window.ChromDriftAiKnowledge) {
+    showBootError('模块加载失败：未找到 ChromDriftAiKnowledge。');
+    return;
+  }
+  if (!window.ChromDriftGlobalAiAssistant) {
+    showBootError('模块加载失败：未找到 ChromDriftGlobalAiAssistant。');
+    return;
+  }
   if (!window.ChromDriftRecognitionAiAssistant) {
     showBootError('模块加载失败：未找到 ChromDriftRecognitionAiAssistant。');
     return;
@@ -40,6 +48,22 @@
   }
   if (!window.ChromDriftLedgerLcPage) {
     showBootError('模块加载失败：未找到 ChromDriftLedgerLcPage。');
+    return;
+  }
+  if (!window.ChromDriftLedgerCompareGcPage) {
+    showBootError('模块加载失败：未找到 ChromDriftLedgerCompareGcPage。');
+    return;
+  }
+  if (!window.ChromDriftLedgerCompareLcPage) {
+    showBootError('模块加载失败：未找到 ChromDriftLedgerCompareLcPage。');
+    return;
+  }
+  if (!window.ChromDriftVxeWrap) {
+    showBootError('模块加载失败：未找到 ChromDriftVxeWrap。');
+    return;
+  }
+  if (!window.ChromDriftStatusTag) {
+    showBootError('模块加载失败：未找到 ChromDriftStatusTag。');
     return;
   }
   if (!window.ChromDriftToolbarIconBtn) {
@@ -67,17 +91,21 @@
   const { ElMessage, ElMessageBox } = ElementPlus;
   window.ElMessage = ElMessage;
 
-  VxeUI.setConfig({ theme: 'default', zIndex: 3000 });
+  VxeUI.setConfig({
+    theme: 'default',
+    zIndex: 3000,
+    table: { border: true, showOverflow: 'tooltip', rowConfig: { isHover: true } },
+  });
 
   const MODULES = [
     { id: 'drift-rule', label: '漂移规则设置', breadcrumb: '首页 > 漂移规则设置', hasTabs: false },
     { id: 'warning-rule', label: '偏差预警设置', breadcrumb: '首页 > 偏差预警设置', hasTabs: false },
     { id: 'recognition', label: '图谱识别', breadcrumb: '首页 > 图谱识别', hasTabs: false },
-    { id: 'ledger-gc', label: 'GC 数据台账', breadcrumb: '首页 > GC数据台账', hasTabs: false },
-    { id: 'ledger-lc', label: 'LC 数据台账', breadcrumb: '首页 > LC数据台账', hasTabs: false },
+    { id: 'ledger-gc', label: 'GC 数据台账', breadcrumb: '首页 > GC 数据台账', hasTabs: false },
+    { id: 'ledger-compare-gc', label: 'GC 数据比对', breadcrumb: '首页 > GC 数据比对', hasTabs: false },
+    { id: 'ledger-lc', label: 'LC 数据台账', breadcrumb: '首页 > LC 数据台账', hasTabs: false },
+    { id: 'ledger-compare-lc', label: 'LC 数据比对', breadcrumb: '首页 > LC 数据比对', hasTabs: false },
   ];
-
-  const LEDGER_TABS = ['原材料', '生产过程', '生产物料', '数据汇总'];
 
   const DemoRemarkAside = ChromDriftRemarkAside;
 
@@ -92,14 +120,18 @@
       RecognitionPage: ChromDriftRecognitionPage,
       LedgerGcPage: ChromDriftLedgerGcPage,
       LedgerLcPage: ChromDriftLedgerLcPage,
+      LedgerCompareGcPage: ChromDriftLedgerCompareGcPage,
+      LedgerCompareLcPage: ChromDriftLedgerCompareLcPage,
       DemoToolbarIconBtn: ChromDriftToolbarIconBtn,
+      DemoVxeWrap: ChromDriftVxeWrap,
+      DemoStatusTag: ChromDriftStatusTag,
       DemoFieldRemark: ChromDriftFieldRemark,
       DemoFieldRemarkList: ChromDriftFieldRemarkList,
+      DemoGlobalAiAssistant: ChromDriftGlobalAiAssistant,
     },
     setup() {
       const currentPage = ref('drift-rule');
       const defaultOpeneds = ref(['chrom-drift']);
-      const ledgerTab = ref('原材料');
       const queryForm = ref({});
       const tableData = ref([]);
       const pageSizes = [10, 50, 100, 500, 1000, 1500];
@@ -109,9 +141,12 @@
       const activeModule = computed(() => MODULES.find((m) => m.id === currentPage.value) || MODULES[0]);
       const pageTitle = computed(() => activeModule.value.label);
       const breadcrumb = computed(() => activeModule.value.breadcrumb);
+      const breadcrumbItems = computed(() => (
+        (activeModule.value.breadcrumb || '').split(/\s*>\s*/).filter(Boolean)
+      ));
       const pageRemarks = computed(() => ChromDriftRemarks.getPageRemarks(currentPage.value));
       const pageFlow = computed(() => ChromDriftRemarks.getPageFlow(currentPage.value));
-      const showLedgerTabs = computed(() => activeModule.value.hasTabs);
+      const showLedgerTabs = computed(() => false);
       const remarkMode = ChromDriftRemarkMode.state;
       const aiMode = ChromDriftAiMode.state;
 
@@ -131,7 +166,6 @@
         currentPage.value = id;
         queryForm.value = {};
         tableData.value = [];
-        if (activeModule.value.hasTabs) ledgerTab.value = '原材料';
         currentPageNum.value = 1;
       }
 
@@ -169,6 +203,7 @@
         currentPage,
         pageTitle,
         breadcrumb,
+        breadcrumbItems,
         pageRemarks,
         pageFlow,
         remarkMode,
@@ -177,8 +212,6 @@
         toggleAiMode,
         closeAiMode,
         showLedgerTabs,
-        ledgerTabs: LEDGER_TABS,
-        ledgerTab,
         queryForm,
         tableData,
         pageSizes,

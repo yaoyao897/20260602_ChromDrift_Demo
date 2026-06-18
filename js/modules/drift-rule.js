@@ -31,7 +31,7 @@
   window.ChromDriftDriftRulePage = {
     name: 'DriftRulePage',
     template: `
-      <div class="drift-rule-page">
+      <div class="page-module drift-rule-page">
         <demo-query-panel :model="query" @submit="doQuery">
           <demo-query-field label="规则编码">
             <el-input v-model="query.code" clearable placeholder="模糊查询" @keyup.enter="doQuery" />
@@ -50,7 +50,14 @@
             </el-select>
           </demo-query-field>
           <template #actions>
-            <el-button type="primary" native-type="submit">查询</el-button>
+            <el-dropdown split-button type="primary" @click="doQuery">
+              查询
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="ElMessage.info('查询方案（Demo 占位）')">默认查询方案</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button @click="resetQuery">重置</el-button>
           </template>
         </demo-query-panel>
@@ -58,76 +65,84 @@
         <demo-module-guide-card v-if="remarkMode" :guide="flow"></demo-module-guide-card>
 
         <div class="list-with-remark">
-          <div class="demo-card list-main" ref="listCardRef">
+          <section class="list-area list-main" ref="listCardRef">
             <div class="list-toolbar">
-              <span class="list-toolbar__title">数据列表</span>
+              <div class="list-toolbar__info">
+                <span class="list-toolbar__title">漂移规则设置</span>
+                <span class="list-toolbar__sel">已选: {{ selection.length }} (当页已选: {{ pageSelectedCount }})</span>
+              </div>
               <div class="list-toolbar__actions">
                 <el-button type="primary" @click="openAdd">新增</el-button>
                 <el-button type="danger" @click="batchDelete">批量删除</el-button>
                 <el-button @click="exportData">导出数据</el-button>
-                <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
-                <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
-                <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
-                <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                <div class="list-toolbar__icons">
+                  <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
+                  <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
+                  <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
+                  <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                </div>
               </div>
             </div>
 
-            <vxe-table
-              ref="tableRef"
-              class="demo-table"
-              :data="pagedRows"
-              border stripe
-              height="420"
-              :column-config="{ resizable: true, minWidth: 80 }"
-              :row-config="{ isHover: true, keyField: 'id' }"
-              :checkbox-config="{ reserve: true, highlight: true }"
-              empty-text="暂无数据"
-              @checkbox-change="onSelChange"
-              @checkbox-all="onSelChange"
-            >
-              <vxe-column type="checkbox" width="42" fixed="left" />
-              <vxe-column type="seq" title="序号" width="55" fixed="left" />
-              <vxe-column field="code" title="规则编码" min-width="100" show-overflow />
-              <vxe-column field="name" title="规则名称" min-width="100" show-overflow />
-              <vxe-column field="rtModeLabel" title="典型保留时间数量" min-width="100" show-overflow />
-              <vxe-column field="deviationText" title="RRT&amp;tR的偏差范围" min-width="100" show-overflow />
-              <vxe-column field="ledgerType" title="适用台账类型" min-width="100" show-overflow />
-              <vxe-column field="applyType" title="适用类型" min-width="100" show-overflow />
-              <vxe-column field="trInfo" title="典型保留时间信息" min-width="100" show-overflow />
-              <vxe-column field="matInfo" title="适用物料" min-width="100" show-overflow />
-              <vxe-column field="qcpInfo" title="适用QCP点" min-width="100" show-overflow />
-              <vxe-column title="启用状态" min-width="80" show-overflow>
-                <template #default="{ row }">
-                  <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
-                </template>
-              </vxe-column>
-              <vxe-column field="createdAt" title="创建时间" min-width="100" show-overflow class-name="col-secondary" />
-              <vxe-column field="createdBy" title="创建人" min-width="80" show-overflow />
-              <vxe-column title="操作" width="160" fixed="right">
-                <template #default="{ row }">
-                  <el-button link type="primary" @click="copyRow(row)">复制</el-button>
-                  <el-button link type="primary" @click="editRow(row)">编辑</el-button>
-                  <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-                </template>
-              </vxe-column>
-            </vxe-table>
-
-            <vxe-pager
-              v-model:current-page="pageNum"
-              v-model:page-size="pageSize"
-              :page-sizes="pageSizes"
-              :total="filteredRows.length"
-              :layouts="['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'Jump']"
-              style="margin-top:12px"
-            />
-          </div>
+            <div class="list-body">
+              <demo-vxe-wrap
+                ref="vxeWrapRef"
+                :show-table="pagedRows.length > 0"
+                :data="pagedRows"
+                :column-config="{ resizable: true, minWidth: 80 }"
+                :row-config="{ isHover: true, keyField: 'id' }"
+                :checkbox-config="{ reserve: true, highlight: true }"
+                @checkbox-change="onSelChange"
+                @checkbox-all="onSelChange"
+              >
+                <vxe-column type="checkbox" width="48" fixed="left" />
+                <vxe-column type="seq" title="序号" width="60" fixed="left" />
+                <vxe-column field="code" title="规则编码" min-width="100" show-overflow />
+                <vxe-column field="name" title="规则名称" min-width="100" show-overflow />
+                <vxe-column field="rtModeLabel" title="典型保留时间数量" min-width="100" show-overflow />
+                <vxe-column field="deviationText" title="RRT&amp;tR的偏差范围" min-width="100" show-overflow />
+                <vxe-column field="ledgerType" title="适用台账类型" min-width="100" show-overflow />
+                <vxe-column field="applyType" title="适用类型" min-width="100" show-overflow />
+                <vxe-column field="trInfo" title="典型保留时间信息" min-width="100" show-overflow />
+                <vxe-column field="matInfo" title="适用物料" min-width="100" show-overflow />
+                <vxe-column field="qcpInfo" title="适用采样点" min-width="100" show-overflow />
+                <vxe-column title="启用状态" min-width="80" show-overflow>
+                  <template #default="{ row }">
+                    <demo-status-tag :enabled="row.enabled" />
+                  </template>
+                </vxe-column>
+                <vxe-column field="createdAt" title="创建时间" min-width="100" show-overflow class-name="col-secondary" />
+                <vxe-column field="createdBy" title="创建人" min-width="80" show-overflow />
+                <vxe-column title="操作" width="160" fixed="right">
+                  <template #default="{ row }">
+                    <div class="row-op">
+                      <el-button link type="primary" @click="copyRow(row)">复制</el-button>
+                      <el-button link type="primary" @click="editRow(row)">编辑</el-button>
+                      <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                    </div>
+                  </template>
+                </vxe-column>
+              </demo-vxe-wrap>
+              <div class="list-pager">
+                <el-pagination
+                  v-model:current-page="pageNum"
+                  v-model:page-size="pageSize"
+                  :page-sizes="pageSizes"
+                  :total="filteredRows.length"
+                  layout="prev, pager, next, sizes, jumper, ->, total"
+                >
+                  <template #total="{ total }">共 {{ total }} 条记录</template>
+                </el-pagination>
+              </div>
+            </div>
+          </section>
           <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
         </div>
 
         <!-- 新增/编辑弹窗 -->
         <el-dialog
           v-model="dlgVisible"
-          class="demo-dialog"
+          class="demo-dialog demo-dialog--biz"
           :title="dlgTitle"
           width="960px"
           destroy-on-close
@@ -212,9 +227,10 @@
               </p>
               <template v-if="remarkMode">
                 <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trRowType')" />
+                <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trApplyMaterial')" />
+                <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trApplyQcp')" />
                 <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trTypicalRt')" />
                 <demo-field-remark v-bind="fieldRemarkProps('driftRule', 'trCompoundName')" />
-                <demo-field-remark v-if="showTrQcpCol" v-bind="fieldRemarkProps('driftRule', 'trApplyQcp')" />
               </template>
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="addTrRow">添加一行</el-button>
@@ -235,11 +251,47 @@
                 <vxe-column title="类型" width="96">
                   <template #default="{ row }">{{ rowTypeLabel(row) }}</template>
                 </vxe-column>
-                <vxe-column title="适用物料" width="100" show-overflow>
-                  <template #default="{ row }">{{ row.applyMaterial || '/' }}</template>
+                <vxe-column title="适用物料" width="130">
+                  <template #default="{ row }">
+                    <el-select
+                      v-if="!isRollingRow(row)"
+                      v-model="row.applyMaterial"
+                      clearable
+                      filterable
+                      placeholder="共用"
+                      style="width:100%"
+                    >
+                      <el-option label="（共用）" value="" />
+                      <el-option
+                        v-for="m in enabledMaterials"
+                        :key="m.materialCode"
+                        :label="m.materialCode + ' ' + m.materialName"
+                        :value="m.materialCode"
+                      />
+                    </el-select>
+                    <span v-else>{{ row.applyMaterial || '/' }}</span>
+                  </template>
                 </vxe-column>
-                <vxe-column v-if="showTrQcpCol" title="适用QCP" width="90" show-overflow>
-                  <template #default="{ row }">{{ row.applyQcp || '/' }}</template>
+                <vxe-column title="适用采样点" width="130">
+                  <template #default="{ row }">
+                    <el-select
+                      v-if="!isRollingRow(row)"
+                      v-model="row.applyQcp"
+                      clearable
+                      filterable
+                      placeholder="共用"
+                      style="width:100%"
+                    >
+                      <el-option label="（共用）" value="" />
+                      <el-option
+                        v-for="q in enabledQcp"
+                        :key="q.qcpCode"
+                        :label="q.qcpCode + ' ' + q.qcpName"
+                        :value="q.qcpCode"
+                      />
+                    </el-select>
+                    <span v-else>{{ row.applyQcp || '/' }}</span>
+                  </template>
                 </vxe-column>
                 <vxe-column title="主峰" width="70">
                   <template #default="{ row }">
@@ -266,7 +318,7 @@
               </vxe-table>
             </el-tab-pane>
 
-            <el-tab-pane v-if="showMatTab" label="物料" name="material">
+            <el-tab-pane label="物料" name="material">
               <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'matCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openMatPicker">添加物料</el-button>
@@ -291,16 +343,16 @@
                 <vxe-column field="unit" title="基本单位" width="80" />
                 <vxe-column title="启用状态" width="80">
                   <template #default="{ row }">
-                    <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
+                    <demo-status-tag :enabled="row.enabled" />
                   </template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
 
-            <el-tab-pane v-if="showQcpTab" label="QCP点" name="qcp">
+            <el-tab-pane label="采样点" name="qcp">
               <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('driftRule', 'qcpCode')" />
               <div style="margin-bottom:8px">
-                <el-button type="primary" @click="openQcpPicker">添加QCP点</el-button>
+                <el-button type="primary" @click="openQcpPicker">添加采样点</el-button>
                 <el-button type="danger" @click="batchDelQcp">批量删除</el-button>
               </div>
               <vxe-table
@@ -315,12 +367,10 @@
               >
                 <vxe-column type="checkbox" width="42" />
                 <vxe-column type="seq" title="序号" width="55" />
-                <vxe-column field="qcpCode" title="QCP编码" min-width="100" />
-                <vxe-column field="qcpName" title="QCP名称" min-width="120" />
+                <vxe-column field="qcpCode" title="采样点编码" min-width="100" />
+                <vxe-column field="qcpName" title="采样点名称" min-width="120" />
                 <vxe-column title="启用状态" width="80">
-                  <template #default="{ row }">
-                    <el-tag type="success" size="small">启用</el-tag>
-                  </template>
+                  <template #default><demo-status-tag variant="启用" :enabled="true" /></template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
@@ -335,7 +385,7 @@
         <!-- 详情弹窗 -->
         <el-dialog
           v-model="detailVisible"
-          class="demo-dialog"
+          class="demo-dialog demo-dialog--biz"
           title="详情"
           width="960px"
           destroy-on-close
@@ -398,7 +448,7 @@
                 <vxe-column title="适用物料" width="100" show-overflow>
                   <template #default="{ row }">{{ row.applyMaterial || '/' }}</template>
                 </vxe-column>
-                <vxe-column v-if="detailShowTrQcpCol" title="适用QCP" width="90" show-overflow>
+                <vxe-column title="适用采样点" width="90" show-overflow>
                   <template #default="{ row }">{{ row.applyQcp || '/' }}</template>
                 </vxe-column>
                 <vxe-column title="主峰" width="70">
@@ -445,13 +495,13 @@
                 <vxe-column field="unit" title="基本单位" width="80" />
                 <vxe-column title="启用状态" width="80">
                   <template #default="{ row }">
-                    <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
+                    <demo-status-tag :enabled="row.enabled" />
                   </template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
 
-            <el-tab-pane v-if="detailShowQcpTab" label="QCP点" name="qcp">
+            <el-tab-pane label="采样点" name="qcp">
               <vxe-table
                 :data="detailForm.qcpPoints"
                 border
@@ -460,10 +510,10 @@
                 :row-config="{ keyField: 'id' }"
               >
                 <vxe-column type="seq" title="序号" width="55" />
-                <vxe-column field="qcpCode" title="QCP编码" min-width="100" />
-                <vxe-column field="qcpName" title="QCP名称" min-width="120" />
+                <vxe-column field="qcpCode" title="采样点编码" min-width="100" />
+                <vxe-column field="qcpName" title="采样点名称" min-width="120" />
                 <vxe-column title="启用状态" width="80">
-                  <template #default><el-tag type="success" size="small">启用</el-tag></template>
+                  <template #default><span class="tag tag-g">启用</span></template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
@@ -476,7 +526,7 @@
         </el-dialog>
 
         <!-- 物料选择 -->
-        <el-dialog v-model="matDlg" class="demo-dialog" title="物料列表" width="760px" destroy-on-close>
+        <el-dialog v-model="matDlg" class="demo-dialog demo-dialog--biz" title="物料列表" width="760px" destroy-on-close>
           <el-form :inline="true" size="default" :model="matQuery" @submit.prevent="filterMasters">
             <el-form-item label="物料编码"><el-input v-model="matQuery.code" clearable style="width:120px" /></el-form-item>
             <el-form-item label="物料名称"><el-input v-model="matQuery.name" clearable style="width:120px" /></el-form-item>
@@ -517,10 +567,10 @@
         </el-dialog>
 
         <!-- QCP 选择 -->
-        <el-dialog v-model="qcpDlg" class="demo-dialog" title="QCP 列表" width="720px" destroy-on-close>
+        <el-dialog v-model="qcpDlg" class="demo-dialog demo-dialog--biz" title="采样点列表" width="720px" destroy-on-close>
           <el-form :inline="true" size="default" :model="qcpQuery" @submit.prevent>
-            <el-form-item label="QCP编码"><el-input v-model="qcpQuery.code" clearable style="width:120px" /></el-form-item>
-            <el-form-item label="QCP名称"><el-input v-model="qcpQuery.name" clearable style="width:120px" /></el-form-item>
+            <el-form-item label="采样点编码"><el-input v-model="qcpQuery.code" clearable style="width:120px" /></el-form-item>
+            <el-form-item label="采样点名称"><el-input v-model="qcpQuery.name" clearable style="width:120px" /></el-form-item>
             <el-form-item>
               <el-button type="primary" @click="filterMasters">查询</el-button>
               <el-button @click="resetQcpQuery">重置</el-button>
@@ -537,9 +587,9 @@
           >
             <vxe-column type="checkbox" width="42" />
             <vxe-column type="seq" title="序号" width="55" />
-            <vxe-column field="qcpCode" title="QCP编码" min-width="100" />
-            <vxe-column field="qcpName" title="QCP名称" min-width="120" />
-            <vxe-column title="启用状态" width="80"><template #default><el-tag type="success" size="small">启用</el-tag></template></vxe-column>
+            <vxe-column field="qcpCode" title="采样点编码" min-width="100" />
+            <vxe-column field="qcpName" title="采样点名称" min-width="120" />
+            <vxe-column title="启用状态" width="80"><template #default><span class="tag tag-g">启用</span></template></vxe-column>
             <vxe-column field="createdBy" title="创建人" width="80" />
             <vxe-column field="createdAt" title="创建时间" width="150" />
           </vxe-table>
@@ -565,6 +615,8 @@
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
       DemoFieldRemark: ChromDriftFieldRemark,
+      DemoVxeWrap: ChromDriftVxeWrap,
+      DemoStatusTag: ChromDriftStatusTag,
     },
     setup() {
       const rules = usePersistedRef('drift-rules', SEED_DRIFT_RULES);
@@ -573,7 +625,7 @@
       const pageNum = ref(1);
       const pageSize = ref(10);
       const selection = ref([]);
-      const tableRef = ref(null);
+      const vxeWrapRef = ref(null);
       const listCardRef = ref(null);
 
       const dlgVisible = ref(false);
@@ -623,12 +675,7 @@
         },
       });
 
-      const showMatTab = computed(() => V.visibleTabs(form.value.applyType).includes('material'));
-      const showQcpTab = computed(() => V.visibleTabs(form.value.applyType).includes('qcp'));
-      const showTrQcpCol = computed(() => V.showTrApplyQcp(form.value.applyType));
-      const detailShowTrQcpCol = computed(() => V.showTrApplyQcp(detailForm.value.applyType));
       const trSubtableOptional = computed(() => V.isRollingRtMode(form.value.rtAccumMode));
-      const detailShowQcpTab = computed(() => V.visibleTabs(detailForm.value.applyType).includes('qcp'));
       const detailRtModeLabel = computed(() => V.rtModeLabel(detailForm.value.rtAccumMode));
       const detailDeviationText = computed(() => V.formatDeviationRange(
         detailForm.value.deviationMin,
@@ -675,6 +722,15 @@
         const start = (pageNum.value - 1) * pageSize.value;
         return filteredRows.value.slice(start, start + pageSize.value);
       });
+
+      const pageSelectedCount = computed(() => {
+        const pageIds = new Set(pagedRows.value.map((r) => r.id));
+        return selection.value.filter((id) => pageIds.has(id)).length;
+      });
+
+      function getTable() {
+        return vxeWrapRef.value?.getTable?.() || null;
+      }
 
       const enabledMaterials = computed(() => SEED_MATERIALS.filter((m) => m.enabled));
       const matFiltered = computed(() => {
@@ -741,7 +797,7 @@
       }
 
       function getTableSelection() {
-        const t = tableRef.value;
+        const t = getTable();
         if (!t?.getCheckboxRecords) return selection.value;
         const cur = t.getCheckboxRecords() || [];
         const reserved = t.getCheckboxReserveRecords?.() || [];
@@ -751,7 +807,8 @@
       }
 
       function onSelChange() {
-        selection.value = getTableSelection();
+        const rows = getTableSelection();
+        selection.value = rows.map((r) => r.id);
       }
 
       function openAdd() {
@@ -817,7 +874,7 @@
       }
 
       function onApplyTypeChange() {
-        const tabs = V.visibleTabs(form.value.applyType);
+        const tabs = ['tr', ...V.visibleTabs(form.value.applyType)];
         if (!tabs.includes(activeTab.value)) activeTab.value = 'tr';
       }
 
@@ -925,7 +982,7 @@
           added += 1;
         });
         qcpDlg.value = false;
-        ElMessage.success(added ? `已添加 ${added} 条 QCP` : '所选 QCP 均已存在，已跳过');
+        ElMessage.success(added ? `已添加 ${added} 条采样点` : '所选采样点 均已存在，已跳过');
       }
 
       function submitForm() {
@@ -962,8 +1019,8 @@
           const ids = new Set(rows.map((r) => r.id));
           rules.value = rules.value.filter((r) => !ids.has(r.id));
           selection.value = [];
-          tableRef.value?.clearCheckboxRow();
-          tableRef.value?.clearCheckboxReserve?.();
+          getTable()?.clearCheckboxRow();
+          getTable()?.clearCheckboxReserve?.();
           ElMessage.success('删除成功');
         }).catch(() => {});
       }
@@ -1002,10 +1059,11 @@
 
       return {
         query, ledgerTypes: LEDGER_TYPES, applyTypes: APPLY_TYPES, rtModes: RT_ACCUM_MODES, pageSizes: PAGE_SIZES,
-        doQuery, resetQuery, refreshList, pagedRows, filteredRows, pageNum, pageSize,
+        doQuery, resetQuery, refreshList, pagedRows, filteredRows, pageNum, pageSize, pageSelectedCount,
         onSelChange, openAdd, editRow, copyRow, openDetail, saveDetail, onDetailClosed, batchDelete, exportData, toggleFullscreen, toast,
-        dlgVisible, dlgTitle, form, activeTab, showMatTab, showQcpTab, showTrQcpCol, detailShowTrQcpCol, trSubtableOptional, mainPeakId,
-        detailVisible, detailForm, detailActiveTab, detailShowQcpTab, detailRtModeLabel, detailDeviationText, detailHasRolling,
+        dlgVisible, dlgTitle, form, activeTab, trSubtableOptional, mainPeakId,
+        enabledMaterials, enabledQcp,
+        detailVisible, detailForm, detailActiveTab, detailRtModeLabel, detailDeviationText, detailHasRolling,
         isRollingRow, rowTypeLabel,
         devSignMin, devSignMax, devAbsMin, devAbsMax,
         addTrRow, batchDelTr, batchDelMat, batchDelQcp, onTrSel, onMatSel, onQcpSel, onApplyTypeChange,
@@ -1013,7 +1071,8 @@
         qcpDlg, qcpQuery, qcpPickPage, qcpFiltered, qcpPageNum, qcpPageSize, qcpPickRef, openQcpPicker, confirmQcpPick, resetQcpQuery,
         submitForm, onDlgClosed, remarks, flow, remarkMode,
         fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
-        dialogTableHeight, pickerTableHeight, tableRef, listCardRef,
+        dialogTableHeight, pickerTableHeight,
+        vxeWrapRef, listCardRef, selection, ElMessage,
       };
     },
   };

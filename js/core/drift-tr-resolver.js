@@ -28,7 +28,7 @@
       const trMat = norm(tr.applyMaterial);
       const trQcp = norm(tr.applyQcp);
       if (trMat && mat && trMat !== mat && !mat.includes(trMat)) return false;
-      if (applyType === '生产过程' && trQcp && qcp && trQcp !== qcp) return false;
+      if (trQcp && qcp && trQcp !== qcp) return false;
       return true;
     });
   }
@@ -130,7 +130,7 @@
       const trMat = norm(tr.applyMaterial);
       const trQcp = norm(tr.applyQcp);
       if (trMat && mat && trMat !== mat) return false;
-      if (ctx.applyType === '生产过程' && trQcp && qcp && trQcp !== qcp) return false;
+      if (trQcp && qcp && trQcp !== qcp) return false;
       return true;
     });
   }
@@ -159,7 +159,7 @@
         id: uid(),
         rowType: 'rolling',
         applyMaterial: materialKey(ctx),
-        applyQcp: record.applyType === '生产过程' ? norm(record.qcpPoint) : '',
+        applyQcp: norm(record.qcpPoint),
         typicalRt: col,
         compoundName: det.componentName || '新杂',
         isMainPeak: false,

@@ -37,7 +37,7 @@
   window.ChromDriftWarningRulePage = {
     name: 'WarningRulePage',
     template: `
-      <div class="warning-rule-page">
+      <div class="page-module warning-rule-page">
         <demo-query-panel :model="query" @submit="doQuery">
           <demo-query-field label="规则编码">
             <el-input v-model="query.code" clearable placeholder="模糊查询" @keyup.enter="doQuery" />
@@ -62,7 +62,14 @@
             </el-select>
           </demo-query-field>
           <template #actions>
-            <el-button type="primary" native-type="submit">查询</el-button>
+            <el-dropdown split-button type="primary" @click="doQuery">
+              查询
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="ElMessage.info('查询方案（Demo 占位）')">默认查询方案</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button @click="resetQuery">重置</el-button>
           </template>
         </demo-query-panel>
@@ -70,74 +77,84 @@
         <demo-module-guide-card v-if="remarkMode" :guide="flow"></demo-module-guide-card>
 
         <div class="list-with-remark">
-          <div class="demo-card list-main" ref="listCardRef">
+          <section class="list-area list-main" ref="listCardRef">
             <div class="list-toolbar">
-              <span class="list-toolbar__title">数据列表</span>
+              <div class="list-toolbar__info">
+                <span class="list-toolbar__title">偏差预警设置</span>
+                <span class="list-toolbar__sel">已选: {{ selection.length }} (当页已选: {{ pageSelectedCount }})</span>
+              </div>
               <div class="list-toolbar__actions">
                 <el-button type="primary" @click="openAdd">新增</el-button>
                 <el-button type="danger" @click="batchDelete">批量删除</el-button>
                 <el-button @click="exportData">导出数据</el-button>
-                <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
-                <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
-                <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
-                <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                <div class="list-toolbar__icons">
+                  <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
+                  <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
+                  <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
+                  <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                </div>
               </div>
             </div>
 
-            <vxe-table
-              ref="tableRef"
-              class="demo-table"
-              :data="pagedRows"
-              border stripe
-              height="420"
-              :column-config="{ resizable: true, minWidth: 80 }"
-              :row-config="{ isHover: true, keyField: 'id' }"
-              :checkbox-config="{ reserve: true, highlight: true }"
-              empty-text="暂无数据"
-              @checkbox-change="onSelChange"
-              @checkbox-all="onSelChange"
-            >
-              <vxe-column type="checkbox" width="42" fixed="left" />
-              <vxe-column type="seq" title="序号" width="55" fixed="left" />
-              <vxe-column field="code" title="规则编码" min-width="100" show-overflow />
-              <vxe-column field="name" title="规则名称" min-width="100" show-overflow />
-              <vxe-column field="deviationTypeLabel" title="偏差类型" min-width="100" show-overflow />
-              <vxe-column field="uclText" title="UCL" min-width="90" show-overflow />
-              <vxe-column field="lclText" title="LCL" min-width="90" show-overflow />
-              <vxe-column field="applyType" title="适用类型" min-width="100" show-overflow />
-              <vxe-column field="matInfo" title="适用物料" min-width="100" show-overflow />
-              <vxe-column field="qcpInfo" title="适用QCP点" min-width="100" show-overflow />
-              <vxe-column field="remark" title="备注" min-width="100" show-overflow />
-              <vxe-column title="启用状态" min-width="80" show-overflow>
-                <template #default="{ row }">
-                  <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
-                </template>
-              </vxe-column>
-              <vxe-column field="createdAt" title="创建时间" min-width="100" show-overflow class-name="col-secondary" />
-              <vxe-column field="createdBy" title="创建人" min-width="80" show-overflow />
-              <vxe-column title="操作" width="120" fixed="right">
-                <template #default="{ row }">
-                  <el-button link type="primary" @click="copyRow(row)">复制</el-button>
-                  <el-button link type="primary" @click="editRow(row)">编辑</el-button>
-                </template>
-              </vxe-column>
-            </vxe-table>
-
-            <vxe-pager
-              v-model:current-page="pageNum"
-              v-model:page-size="pageSize"
-              :page-sizes="pageSizes"
-              :total="filteredRows.length"
-              :layouts="['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'Jump']"
-              style="margin-top:12px"
-            />
-          </div>
+            <div class="list-body">
+              <demo-vxe-wrap
+                ref="vxeWrapRef"
+                :show-table="pagedRows.length > 0"
+                :data="pagedRows"
+                :column-config="{ resizable: true, minWidth: 80 }"
+                :row-config="{ isHover: true, keyField: 'id' }"
+                :checkbox-config="{ reserve: true, highlight: true }"
+                @checkbox-change="onSelChange"
+                @checkbox-all="onSelChange"
+              >
+                <vxe-column type="checkbox" width="48" fixed="left" />
+                <vxe-column type="seq" title="序号" width="60" fixed="left" />
+                <vxe-column field="code" title="规则编码" width="120" show-overflow />
+                <vxe-column field="name" title="规则名称" width="140" show-overflow />
+                <vxe-column field="deviationTypeLabel" title="偏差类型" width="100" show-overflow />
+                <vxe-column field="uslText" title="USL" width="90" show-overflow />
+                <vxe-column field="lslText" title="LSL" width="90" show-overflow />
+                <vxe-column field="uclText" title="UCL" width="90" show-overflow />
+                <vxe-column field="lclText" title="LCL" width="90" show-overflow />
+                <vxe-column field="applyType" title="适用类型" width="100" show-overflow />
+                <vxe-column field="matInfo" title="适用物料" width="120" show-overflow />
+                <vxe-column field="qcpInfo" title="适用采样点" width="120" show-overflow />
+                <vxe-column field="remark" title="备注" width="160" show-overflow />
+                <vxe-column title="启用状态" width="90" show-overflow>
+                  <template #default="{ row }">
+                    <demo-status-tag :enabled="row.enabled" />
+                  </template>
+                </vxe-column>
+                <vxe-column field="createdAt" title="创建时间" width="170" show-overflow class-name="col-secondary" />
+                <vxe-column field="createdBy" title="创建人" width="80" show-overflow />
+                <vxe-column title="操作" width="140" fixed="right">
+                  <template #default="{ row }">
+                    <div class="row-op">
+                      <el-button link type="primary" @click="copyRow(row)">复制</el-button>
+                      <el-button link type="primary" @click="editRow(row)">编辑</el-button>
+                    </div>
+                  </template>
+                </vxe-column>
+              </demo-vxe-wrap>
+              <div class="list-pager">
+                <el-pagination
+                  v-model:current-page="pageNum"
+                  v-model:page-size="pageSize"
+                  :page-sizes="pageSizes"
+                  :total="filteredRows.length"
+                  layout="prev, pager, next, sizes, jumper, ->, total"
+                >
+                  <template #total="{ total }">共 {{ total }} 条记录</template>
+                </el-pagination>
+              </div>
+            </div>
+          </section>
           <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
         </div>
 
         <el-dialog
           v-model="dlgVisible"
-          class="demo-dialog"
+          class="demo-dialog demo-dialog--biz"
           :title="dlgTitle"
           width="960px"
           destroy-on-close
@@ -171,46 +188,6 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="USL">
-                  <div class="demo-form-limit">
-                    <el-select v-model="form.uslOp" class="demo-form-limit__op">
-                      <el-option v-for="o in upperOps" :key="o.value" :label="o.label" :value="o.value" />
-                    </el-select>
-                    <el-input-number v-model="form.uslValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
-                  </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="LSL">
-                  <div class="demo-form-limit">
-                    <el-select v-model="form.lslOp" class="demo-form-limit__op">
-                      <el-option v-for="o in lowerOps" :key="o.value" :label="o.label" :value="o.value" />
-                    </el-select>
-                    <el-input-number v-model="form.lslValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
-                  </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="UCL">
-                  <div class="demo-form-limit">
-                    <el-select v-model="form.uclOp" class="demo-form-limit__op">
-                      <el-option v-for="o in upperOps" :key="o.value" :label="o.label" :value="o.value" />
-                    </el-select>
-                    <el-input-number v-model="form.uclValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
-                  </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="LCL">
-                  <div class="demo-form-limit">
-                    <el-select v-model="form.lclOp" class="demo-form-limit__op">
-                      <el-option v-for="o in lowerOps" :key="o.value" :label="o.label" :value="o.value" />
-                    </el-select>
-                    <el-input-number v-model="form.lclValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
-                  </div>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
                 <el-form-item label="备注">
                   <el-input v-model="form.remark" placeholder="输入" />
                 </el-form-item>
@@ -231,7 +208,7 @@
           </el-form>
 
           <el-tabs v-model="activeTab" class="demo-dialog-tabs">
-            <el-tab-pane v-if="showMatTab" label="物料" name="material">
+            <el-tab-pane label="物料" name="material">
               <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('warningRule', 'matCode')" />
               <div style="margin-bottom:8px">
                 <el-button type="primary" @click="openMatPicker">添加物料</el-button>
@@ -256,16 +233,73 @@
                 <vxe-column field="unit" title="基本单位" width="80" />
                 <vxe-column title="启用状态" width="80">
                   <template #default="{ row }">
-                    <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
+                    <demo-status-tag :enabled="row.enabled" />
                   </template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
 
-            <el-tab-pane v-if="showQcpTab" label="QCP点" name="qcp">
+            <el-tab-pane label="指标集" name="limit">
+              <template v-if="remarkMode">
+                <demo-field-remark v-bind="fieldRemarkProps('warningRule', 'usl')" />
+                <demo-field-remark v-bind="fieldRemarkProps('warningRule', 'lsl')" />
+                <demo-field-remark v-bind="fieldRemarkProps('warningRule', 'ucl')" />
+                <demo-field-remark v-bind="fieldRemarkProps('warningRule', 'lcl')" />
+              </template>
+              <vxe-table
+                :data="limitRowData"
+                border
+                class="demo-dialog-table demo-indicator-set-table"
+                :height="120"
+                :row-config="{ keyField: 'id' }"
+              >
+                <vxe-column title="USL" min-width="220">
+                  <template #default>
+                    <div class="demo-form-limit demo-form-limit--cell">
+                      <el-select v-model="form.uslOp" class="demo-form-limit__op">
+                        <el-option v-for="o in upperOps" :key="o.value" :label="o.label" :value="o.value" />
+                      </el-select>
+                      <el-input-number v-model="form.uslValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
+                    </div>
+                  </template>
+                </vxe-column>
+                <vxe-column title="LSL" min-width="220">
+                  <template #default>
+                    <div class="demo-form-limit demo-form-limit--cell">
+                      <el-select v-model="form.lslOp" class="demo-form-limit__op">
+                        <el-option v-for="o in lowerOps" :key="o.value" :label="o.label" :value="o.value" />
+                      </el-select>
+                      <el-input-number v-model="form.lslValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
+                    </div>
+                  </template>
+                </vxe-column>
+                <vxe-column title="UCL" min-width="220">
+                  <template #default>
+                    <div class="demo-form-limit demo-form-limit--cell">
+                      <el-select v-model="form.uclOp" class="demo-form-limit__op">
+                        <el-option v-for="o in upperOps" :key="o.value" :label="o.label" :value="o.value" />
+                      </el-select>
+                      <el-input-number v-model="form.uclValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
+                    </div>
+                  </template>
+                </vxe-column>
+                <vxe-column title="LCL" min-width="220">
+                  <template #default>
+                    <div class="demo-form-limit demo-form-limit--cell">
+                      <el-select v-model="form.lclOp" class="demo-form-limit__op">
+                        <el-option v-for="o in lowerOps" :key="o.value" :label="o.label" :value="o.value" />
+                      </el-select>
+                      <el-input-number v-model="form.lclValue" :step="0.01" :precision="3" controls-position="right" class="demo-form-limit__num" />
+                    </div>
+                  </template>
+                </vxe-column>
+              </vxe-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="采样点" name="qcp">
               <demo-field-remark v-if="remarkMode" v-bind="fieldRemarkProps('warningRule', 'qcpCode')" />
               <div style="margin-bottom:8px">
-                <el-button type="primary" @click="openQcpPicker">添加QCP点</el-button>
+                <el-button type="primary" @click="openQcpPicker">添加采样点</el-button>
                 <el-button type="danger" @click="batchDelQcp">批量删除</el-button>
               </div>
               <vxe-table
@@ -280,10 +314,10 @@
               >
                 <vxe-column type="checkbox" width="42" />
                 <vxe-column type="seq" title="序号" width="55" />
-                <vxe-column field="qcpCode" title="QCP编码" min-width="100" />
-                <vxe-column field="qcpName" title="QCP名称" min-width="120" />
+                <vxe-column field="qcpCode" title="采样点编码" min-width="100" />
+                <vxe-column field="qcpName" title="采样点名称" min-width="120" />
                 <vxe-column title="启用状态" width="80">
-                  <template #default><el-tag type="success" size="small">启用</el-tag></template>
+                  <template #default><demo-status-tag variant="启用" :enabled="true" /></template>
                 </vxe-column>
               </vxe-table>
             </el-tab-pane>
@@ -336,10 +370,10 @@
           </template>
         </el-dialog>
 
-        <el-dialog v-model="qcpDlg" class="demo-dialog" title="QCP 列表" width="720px" destroy-on-close>
+        <el-dialog v-model="qcpDlg" class="demo-dialog" title="采样点列表" width="720px" destroy-on-close>
           <el-form :inline="true" size="default" :model="qcpQuery" @submit.prevent>
-            <el-form-item label="QCP编码"><el-input v-model="qcpQuery.code" clearable style="width:120px" /></el-form-item>
-            <el-form-item label="QCP名称"><el-input v-model="qcpQuery.name" clearable style="width:120px" /></el-form-item>
+            <el-form-item label="采样点编码"><el-input v-model="qcpQuery.code" clearable style="width:120px" /></el-form-item>
+            <el-form-item label="采样点名称"><el-input v-model="qcpQuery.name" clearable style="width:120px" /></el-form-item>
             <el-form-item>
               <el-button type="primary" @click="filterMasters">查询</el-button>
               <el-button @click="resetQcpQuery">重置</el-button>
@@ -356,9 +390,9 @@
           >
             <vxe-column type="checkbox" width="42" />
             <vxe-column type="seq" title="序号" width="55" />
-            <vxe-column field="qcpCode" title="QCP编码" min-width="100" />
-            <vxe-column field="qcpName" title="QCP名称" min-width="120" />
-            <vxe-column title="启用状态" width="80"><template #default><el-tag type="success" size="small">启用</el-tag></template></vxe-column>
+            <vxe-column field="qcpCode" title="采样点编码" min-width="100" />
+            <vxe-column field="qcpName" title="采样点名称" min-width="120" />
+            <vxe-column title="启用状态" width="80"><template #default><span class="tag tag-g">启用</span></template></vxe-column>
             <vxe-column field="createdBy" title="创建人" width="80" />
             <vxe-column field="createdAt" title="创建时间" width="150" />
           </vxe-table>
@@ -385,10 +419,12 @@
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
       DemoFieldRemark: ChromDriftFieldRemark,
+      DemoVxeWrap: ChromDriftVxeWrap,
+      DemoStatusTag: ChromDriftStatusTag,
     },
     setup() {
       const warningHeadFieldKeys = [
-        'code', 'name', 'deviationType', 'applyType', 'usl', 'lsl', 'ucl', 'lcl', 'remark', 'enabled',
+        'code', 'name', 'deviationType', 'applyType', 'remark', 'enabled',
       ];
       const rules = usePersistedRef('warning-rules', SEED_WARNING_RULES);
       const query = ref({
@@ -398,7 +434,7 @@
       const pageNum = ref(1);
       const pageSize = ref(10);
       const selection = ref([]);
-      const tableRef = ref(null);
+      const vxeWrapRef = ref(null);
       const listCardRef = ref(null);
 
       const dlgVisible = ref(false);
@@ -426,8 +462,7 @@
       const dialogTableHeight = 320;
       const pickerTableHeight = 280;
 
-      const showMatTab = computed(() => V.visibleTabs(form.value.applyType).includes('material'));
-      const showQcpTab = computed(() => V.visibleTabs(form.value.applyType).includes('qcp'));
+      const limitRowData = computed(() => [{ id: 'limit-row' }]);
 
       const dlgTitle = computed(() => (dlgMode.value === 'edit' ? '编辑' : '新增'));
 
@@ -435,6 +470,8 @@
         return {
           ...row,
           deviationTypeLabel: V.deviationTypeLabel(row.deviationType),
+          uslText: V.formatLimit(row.uslOp, row.uslValue),
+          lslText: V.formatLimit(row.lslOp, row.lslValue),
           uclText: V.formatLimit(row.uclOp, row.uclValue),
           lclText: V.formatLimit(row.lclOp, row.lclValue),
           matInfo: V.materialSummary(row),
@@ -459,6 +496,15 @@
         const start = (pageNum.value - 1) * pageSize.value;
         return filteredRows.value.slice(start, start + pageSize.value);
       });
+
+      const pageSelectedCount = computed(() => {
+        const pageIds = new Set(pagedRows.value.map((r) => r.id));
+        return selection.value.filter((id) => pageIds.has(id)).length;
+      });
+
+      function getTable() {
+        return vxeWrapRef.value?.getTable?.() || null;
+      }
 
       const enabledMaterials = computed(() => SEED_MATERIALS.filter((m) => m.enabled));
       const matFiltered = computed(() => {
@@ -504,7 +550,7 @@
       function refreshList() { ElMessage.success('列表已刷新'); }
 
       function getTableSelection() {
-        const t = tableRef.value;
+        const t = getTable();
         if (!t?.getCheckboxRecords) return selection.value;
         const cur = t.getCheckboxRecords() || [];
         const reserved = t.getCheckboxReserveRecords?.() || [];
@@ -513,7 +559,10 @@
         return [...map.values()];
       }
 
-      function onSelChange() { selection.value = getTableSelection(); }
+      function onSelChange() {
+        const rows = getTableSelection();
+        selection.value = rows.map((r) => r.id);
+      }
 
       function openAdd() {
         dlgMode.value = 'add';
@@ -525,6 +574,8 @@
       function fillForm(row, isCopy) {
         const data = clone(row);
         delete data.deviationTypeLabel;
+        delete data.uslText;
+        delete data.lslText;
         delete data.uclText;
         delete data.lclText;
         delete data.matInfo;
@@ -552,7 +603,7 @@
 
       function onApplyTypeChange() {
         const tabs = V.visibleTabs(form.value.applyType);
-        if (!tabs.includes(activeTab.value)) activeTab.value = tabs[0] || 'material';
+        if (!tabs.includes(activeTab.value)) activeTab.value = 'material';
       }
 
       function onMatSel({ records }) { matSel.value = records; }
@@ -623,7 +674,7 @@
           added += 1;
         });
         qcpDlg.value = false;
-        ElMessage.success(added ? `已添加 ${added} 条 QCP` : '所选 QCP 均已存在，已跳过');
+        ElMessage.success(added ? `已添加 ${added} 条采样点` : '所选采样点 均已存在，已跳过');
       }
 
       function submitForm() {
@@ -659,8 +710,8 @@
           const ids = new Set(rows.map((r) => r.id));
           rules.value = rules.value.filter((r) => !ids.has(r.id));
           selection.value = [];
-          tableRef.value?.clearCheckboxRow();
-          tableRef.value?.clearCheckboxReserve?.();
+          getTable()?.clearCheckboxRow();
+          getTable()?.clearCheckboxReserve?.();
           ElMessage.success('删除成功');
         }).catch(() => {});
       }
@@ -668,9 +719,10 @@
       function exportData() {
         const rows = getTableSelection().length ? getTableSelection() : filteredRows.value;
         if (!rows.length) { ElMessage.warning('无数据可导出'); return; }
-        const header = ['规则编码', '规则名称', '偏差类型', 'UCL', 'LCL', '适用类型', '备注'];
+        const header = ['规则编码', '规则名称', '偏差类型', 'USL', 'LSL', 'UCL', 'LCL', '适用类型', '适用物料', '适用采样点', '备注'];
         const lines = rows.map((r) => [
-          r.code, r.name, r.deviationTypeLabel, r.uclText, r.lclText, r.applyType, r.remark || '',
+          r.code, r.name, r.deviationTypeLabel, r.uslText, r.lslText, r.uclText, r.lclText,
+          r.applyType, r.matInfo, r.qcpInfo, r.remark || '',
         ].join(','));
         const blob = new Blob([`\uFEFF${header.join(',')}\n${lines.join('\n')}`], { type: 'text/csv;charset=utf-8' });
         const a = document.createElement('a');
@@ -693,9 +745,9 @@
       return {
         query, applyTypes: APPLY_TYPES, deviationTypes: DEVIATION_TYPES,
         upperOps: UPPER_LIMIT_OPS, lowerOps: LOWER_LIMIT_OPS, pageSizes: PAGE_SIZES,
-        doQuery, resetQuery, refreshList, pagedRows, filteredRows, pageNum, pageSize,
+        doQuery, resetQuery, refreshList, pagedRows, filteredRows, pageNum, pageSize, pageSelectedCount,
         onSelChange, openAdd, editRow, copyRow, batchDelete, exportData, toggleFullscreen, toast,
-        dlgVisible, dlgTitle, form, activeTab, showMatTab, showQcpTab, onApplyTypeChange,
+        dlgVisible, dlgTitle, form, activeTab, limitRowData, onApplyTypeChange,
         batchDelMat, batchDelQcp, onMatSel, onQcpSel,
         matDlg, matQuery, matPickPage, matFiltered, matPageNum, matPageSize, matPickRef,
         openMatPicker, confirmMatPick, resetMatQuery, filterMasters,
@@ -704,7 +756,7 @@
         submitForm, onDlgClosed, remarks, flow, remarkMode, warningHeadFieldKeys,
         fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
         dialogTableHeight, pickerTableHeight,
-        tableRef, listCardRef,
+        vxeWrapRef, listCardRef, selection, ElMessage,
       };
     },
   };

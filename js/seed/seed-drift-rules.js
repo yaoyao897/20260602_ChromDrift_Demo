@@ -78,6 +78,7 @@
       createdAt: '2025-04-20 08:00:00',
       trRows: [trRow(1.2, '杂质X', false), trRow(2.5, '主峰', true)],
       materials: [matRow('RM001', '原料X', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     rule('dr-9', 'DR-GC-R02', 'GC原材料-RM003', {
       deviationMin: -0.003, deviationMax: 0.003,
@@ -86,6 +87,7 @@
       createdAt: '2025-04-22 08:00:00',
       trRows: [trRow(0.9, '杂质Z1', false), trRow(2.1, '主峰', true)],
       materials: [matRow('RM003', '原料Z', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     rule('dr-10', 'DR-GC-R03', 'GC原材料-RM004', {
       rtAccumMode: 'batch',
@@ -94,6 +96,7 @@
       createdAt: '2025-04-24 08:00:00',
       trRows: [trRow(1.5, '杂质W1', false), trRow(3.0, '主峰', true)],
       materials: [matRow('RM004', '原料W', 'CP', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP02', '精制步骤')],
     }),
 
     // —— GC 生产物料（3 条）——
@@ -103,6 +106,7 @@
       createdAt: '2025-04-15 08:30:00',
       trRows: [trRow(0.8, '杂质P', false), trRow(1.8, '主峰', true), trRow(3.2, '杂质Q', false)],
       materials: [matRow('CP001', '成品A', '500g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     rule('dr-11', 'DR-GC-M02', 'GC生产物料-CP002', {
       ledgerType: 'GC', applyType: '生产物料',
@@ -110,6 +114,7 @@
       createdAt: '2025-04-16 08:30:00',
       trRows: [trRow(0.7, '杂质R', false), trRow(1.6, '主峰', true), trRow(2.9, '杂质S', false)],
       materials: [matRow('CP002', '成品B', '1kg', '成品', '袋')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     rule('dr-12', 'DR-GC-M03', 'GC生产物料-CP003', {
       rtAccumMode: 'first_batch',
@@ -118,6 +123,7 @@
       createdAt: '2025-04-17 08:30:00',
       trRows: [trRow(1.0, '杂质T', false), trRow(2.2, '主峰', true)],
       materials: [matRow('CP003', '成品C', '250g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
 
     // —— LC 生产过程（3 条）——
@@ -158,6 +164,7 @@
       createdAt: '2025-05-28 08:00:00',
       trRows: [trRow(3.2, '杂质Y', false), trRow(5.8, '主峰', true)],
       materials: [matRow('RM002', '原料Y', 'CP', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     rule('dr-15', 'DR-LC-R02', 'LC原材料-RM003', {
       deviationMin: -0.003, deviationMax: 0.003,
@@ -166,6 +173,7 @@
       createdAt: '2025-05-29 08:00:00',
       trRows: [trRow(2.8, '杂质Z2', false), trRow(6.2, '主峰', true)],
       materials: [matRow('RM003', '原料Z', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP01', '进厂采样')],
     }),
     rule('dr-16', 'DR-LC-R03', 'LC原材料-RM001', {
       rtAccumMode: 'batch',
@@ -175,6 +183,7 @@
       createdAt: '2025-05-30 08:00:00',
       trRows: [trRow(2.0, '杂质X2', false), trRow(4.5, '主峰', true)],
       materials: [matRow('RM001', '原料X', 'AR', '原料', 'kg')],
+      qcpPoints: [qcpRow('QCP02', '精制步骤')],
     }),
 
     // —— LC 生产物料（3 条）——
@@ -185,6 +194,7 @@
       createdAt: '2025-05-20 09:00:00',
       trRows: [trRow(1.5, '杂质M', false), trRow(3.0, '主峰', true), trRow(5.5, '杂质N', false)],
       materials: [matRow('CP002', '成品B', '1kg', '成品', '袋')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     rule('dr-17', 'DR-LC-M02', 'LC生产物料-CP001', {
       rtAccumMode: 'batch',
@@ -194,6 +204,7 @@
       createdAt: '2025-05-21 09:00:00',
       trRows: [trRow(1.2, '杂质M2', false), trRow(2.8, '主峰', true), trRow(4.8, '杂质N2', false)],
       materials: [matRow('CP001', '成品A', '500g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
     rule('dr-18', 'DR-LC-M03', 'LC生产物料-CP003', {
       deviationMin: -0.003, deviationMax: 0.003,
@@ -202,6 +213,7 @@
       createdAt: '2025-05-22 09:00:00',
       trRows: [trRow(1.8, '杂质M3', false), trRow(3.5, '主峰', true)],
       materials: [matRow('CP003', '成品C', '250g', '成品', '瓶')],
+      qcpPoints: [qcpRow('QCP04', '灌装步骤')],
     }),
   ];
 

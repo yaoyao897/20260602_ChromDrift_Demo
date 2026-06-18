@@ -43,8 +43,8 @@
     return mode === 'batch' || mode === 'first_batch';
   }
 
-  function showTrApplyQcp(applyType) {
-    return applyType === '生产过程';
+  function showTrApplyQcp() {
+    return true;
   }
 
   function validateDriftRule(form, allRules, editingId) {
@@ -78,12 +78,12 @@
 
     const cfg = DRIFT_TAB_CONFIG[form.applyType] || {};
     if (cfg.materialRequired && !(form.materials || []).length) errs.push('请添加适用物料');
-    if (cfg.qcpRequired && !(form.qcpPoints || []).length) errs.push('请添加 QCP点');
+    if (cfg.qcpRequired && !(form.qcpPoints || []).length) errs.push('请添加采样点');
 
     const matCodes = (form.materials || []).map((m) => m.materialCode);
     if (matCodes.length !== new Set(matCodes).size) errs.push('物料编码不可重复');
     const qcpCodes = (form.qcpPoints || []).map((q) => q.qcpCode);
-    if (qcpCodes.length !== new Set(qcpCodes).size) errs.push('QCP编码不可重复');
+    if (qcpCodes.length !== new Set(qcpCodes).size) errs.push('采样点编码不可重复');
 
     return errs;
   }

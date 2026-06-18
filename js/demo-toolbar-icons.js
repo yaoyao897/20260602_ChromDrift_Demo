@@ -1,5 +1,5 @@
 /**
- * 工具条 / 顶栏 · 圆形图标按钮（支持 SVG 或 emoji）
+ * 工具条 / 顶栏 · 圆形图标按钮（§3 规范：白底描边，hover 深蓝；非 el-button）
  */
 (function () {
   const ICONS = {
@@ -33,16 +33,16 @@
     },
     template: `
       <el-tooltip :content="title" :placement="placement">
-        <el-button
-          class="toolbar-icon-btn"
-          :class="{ 'toolbar-icon-btn--emoji': !!emoji }"
-          circle
-          :type="active ? 'primary' : 'default'"
+        <button
+          type="button"
+          class="icon-btn toolbar-icon-btn"
+          :class="{ 'toolbar-icon-btn--active': active }"
+          :aria-label="title"
           @click="$emit('click')"
         >
           <span v-if="emoji" class="toolbar-icon-btn__emoji">{{ emoji }}</span>
           <span v-else-if="icon" class="toolbar-icon-btn__icon" v-html="svgHtml"></span>
-        </el-button>
+        </button>
       </el-tooltip>
     `,
   };

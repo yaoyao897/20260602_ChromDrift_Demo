@@ -8,7 +8,7 @@
     if (!form.instrumentCode) errs.push('请选择仪器编号');
     if (!form.materialInfo?.trim()) errs.push('请填写物料信息');
     if (!form.batchNo?.trim()) errs.push('请填写批号');
-    if (applyType === '生产过程' && !form.qcpPoint?.trim()) errs.push('请选择QCP点');
+    if (!form.qcpPoint?.trim()) errs.push('请选择采样点');
     if (!form.ruleName?.trim()) errs.push('未匹配到漂移规则，请补全配置');
     if (!form.warningRuleName?.trim()) errs.push('未匹配到偏差预警规则，请补全配置');
     return errs;

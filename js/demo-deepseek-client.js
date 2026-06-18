@@ -29,6 +29,14 @@
           hint: `未配置 Key：请在 ${AI_CONFIG.envPath} 创建 .env 后重启代理（端口 ${PROXY_PORT}）`,
         };
       }
+      if (!data.assistants?.includes('global')) {
+        return {
+          ok: true,
+          mode: 'proxy',
+          data,
+          hint: '代理版本较旧，请重启 ChromDrift_Demo.sh 以支持全局业务问答',
+        };
+      }
       return { ok: true, mode: 'proxy', data };
     } catch {
       return {
@@ -39,16 +47,23 @@
     }
   }
 
-  async function chat(userText, history, context) {
+  async function chat(userText, history, context, options = {}) {
+    const ctx = context || {};
+    const assistant = options.assistant || ctx.assistant || 'recognition';
+    const useTools = assistant === 'global'
+      ? false
+      : options.useTools !== false;
+
     const res = await fetch(AI_CONFIG.proxyChatUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        assistant,
         message: userText,
         history: history || [],
-        context: context || {},
+        context: { ...ctx, assistant },
         stream: false,
-        useTools: true,
+        useTools,
       }),
     });
     const data = await res.json().catch(() => ({}));

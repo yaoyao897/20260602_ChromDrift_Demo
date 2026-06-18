@@ -10,18 +10,10 @@
   const { PAGE_SIZES } = ChromDriftEnums;
   const LB = ChromDriftLedgerBuilder;
 
-  const LEDGER_TABS = ['原材料', '生产过程', '生产物料', '数据汇总'];
-  const SUMMARY_TYPES = [
-    { value: '生产过程', label: '生产过程' },
-    { value: '生产物料', label: '生产物料' },
-  ];
+  const LEDGER_TABS = ['原材料', '生产过程', '生产物料'];
 
   function emptyQuery() {
     return { batchNo: '', hasNewImpurity: '', enabled: '' };
-  }
-
-  function emptySummaryRow() {
-    return { applyType: '生产过程', materialCode: 'CP002', qcpPoint: 'QCP02', batchNo: '2025060101' };
   }
 
   function cellVal(row, col) {
@@ -60,14 +52,6 @@
     { field: 'createdBy', title: '创建人', width: 80, showOverflow: true },
   ];
 
-  const SUMMARY_META_COLUMNS = [
-    { field: 'hasNewImpurity', title: '是否存在新杂', width: 110, showOverflow: true },
-    { field: 'newImpurityInfo', title: '新杂信息', minWidth: 120, showOverflow: true },
-    { field: 'hasExcessImpurity', title: '是否存在超标新杂', width: 130, showOverflow: true },
-    { field: 'excessImpurityInfo', title: '超标新杂信息', minWidth: 120, showOverflow: true },
-    { field: 'deviationIndicator', title: '偏差指标', minWidth: 110, showOverflow: true },
-  ];
-
   function matrixColumnKey(col) {
     if (col.type) return `t_${col.type}`;
     return `f_${col.field}`;
@@ -80,13 +64,12 @@
   window.ChromDriftLedgerLcPage = {
     name: 'LedgerLcPage',
     template: `
-      <div class="ledger-lc-page">
+      <div class="page-module ledger-lc-page">
         <el-tabs v-model="activeTab" class="demo-tabs" @tab-change="onTabChange">
           <el-tab-pane v-for="t in ledgerTabs" :key="t" :label="t" :name="t" />
         </el-tabs>
 
-        <template v-if="activeTab !== '数据汇总'">
-          <demo-query-panel :model="query" @submit="doQuery">
+        <demo-query-panel :model="query" @submit="doQuery">
             <demo-query-field label="批号">
               <el-input v-model="query.batchNo" clearable placeholder="模糊" @keyup.enter="doQuery" />
             </demo-query-field>
@@ -103,7 +86,14 @@
               </el-select>
             </demo-query-field>
             <template #actions>
-              <el-button type="primary" native-type="submit">查询</el-button>
+              <el-dropdown split-button type="primary" @click="doQuery">
+                查询
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="toast('默认查询方案')">默认查询方案</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
               <el-button @click="resetQuery">重置</el-button>
             </template>
           </demo-query-panel>
@@ -111,7 +101,7 @@
           <demo-module-guide-card v-if="remarkMode" :guide="flow"></demo-module-guide-card>
 
           <div class="ledger-layout list-with-remark">
-            <aside class="demo-card ledger-aside">
+            <aside class="ledger-aside">
               <div class="ledger-aside__toolbar">
                 <el-input v-model="treeKeyword" clearable placeholder="输入关键字" @keyup.enter="filterTree" />
                 <el-button type="primary" @click="filterTree">查询</el-button>
@@ -128,158 +118,64 @@
               />
             </aside>
 
-            <div class="demo-card list-main ledger-matrix" ref="listCardRef">
+            <section class="list-area list-main ledger-matrix" ref="listCardRef">
               <div class="list-toolbar">
-                <span class="list-toolbar__title">数据列表</span>
+                <div class="list-toolbar__info">
+                  <span class="list-toolbar__title">数据列表</span>
+                </div>
                 <div class="list-toolbar__actions">
                   <el-button @click="exportData">导出数据</el-button>
                   <el-button type="danger" @click="batchDelete">批量删除</el-button>
-                  <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
-                  <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
-                  <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
-                  <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                  <div class="list-toolbar__icons">
+                    <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
+                    <demo-toolbar-icon-btn icon="refresh" title="刷新列表" @click="refreshList" />
+                    <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleFullscreen" />
+                    <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+                  </div>
                 </div>
               </div>
 
-              <vxe-table
-                ref="tableRef"
-                :key="matrixTableKey"
-                class="demo-table demo-table--wide demo-table--ledger-matrix"
-                :data="pagedRows"
-                border stripe
-                height="400"
-                :column-config="{ resizable: true, minWidth: 80, useKey: true }"
-                :row-config="{ isHover: true, keyField: 'id' }"
-                :row-class-name="matrixRowClassName"
-                :checkbox-config="{ reserve: true, highlight: true, checkMethod: canCheckRow }"
-                :scroll-x="{ enabled: true }"
-                empty-text="请在左侧选择分类后查看数据"
-                @checkbox-change="onSelChange"
-                @checkbox-all="onSelChange"
-              >
-                <vxe-column
-                  v-for="col in matrixColumns"
-                  :key="matrixColumnKey(col)"
-                  v-bind="col"
-                />
-              </vxe-table>
-
-              <vxe-pager
-                v-model:current-page="pageNum"
-                v-model:page-size="pageSize"
-                :page-sizes="pageSizes"
-                :total="batchRowTotal"
-                :layouts="['Total', 'Sizes', 'PrevPage', 'Number', 'NextPage', 'Jump']"
-                style="margin-top:12px"
-              />
-            </div>
-            <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
-          </div>
-        </template>
-
-        <template v-else>
-          <div class="demo-card ledger-summary-filter">
-            <div class="ledger-summary-filter__title">样本过滤</div>
-            <template v-if="remarkMode">
-              <demo-field-remark
-                v-for="fk in summaryFieldKeys"
-                :key="fk"
-                v-bind="fieldRemarkProps('ledgerSummary', fk)"
-              />
-            </template>
-            <div v-for="(row, idx) in summaryFilters" :key="idx" class="ledger-summary-filter__row">
-              <el-form :inline="true" size="default">
-                <el-form-item label="类型" required>
-                  <el-select v-model="row.applyType" style="width:120px">
-                    <el-option v-for="o in summaryTypes" :key="o.value" :label="o.label" :value="o.value" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="物料信息" required>
-                  <el-select v-model="row.materialCode" filterable style="width:140px">
-                    <el-option
-                      v-for="m in enabledMaterials"
-                      :key="m.materialCode"
-                      :label="m.materialCode + ' ' + m.materialName"
-                      :value="m.materialCode"
-                    />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="QCP点" required>
-                  <el-select v-model="row.qcpPoint" filterable style="width:140px">
-                    <el-option v-for="q in qcpOptions" :key="q.qcpCode" :label="q.qcpCode" :value="q.qcpCode" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="批号" required>
-                  <el-input v-model="row.batchNo" style="width:120px" />
-                </el-form-item>
-                <el-form-item>
-                  <el-button v-if="summaryFilters.length > 1" link type="danger" @click="removeSummaryRow(idx)">删除</el-button>
-                </el-form-item>
-              </el-form>
-            </div>
-            <div class="ledger-summary-filter__actions">
-              <el-button @click="addSummaryRow">添加行</el-button>
-              <el-button type="primary" @click="doSummaryQuery">查询</el-button>
-              <el-button @click="resetSummary">重置</el-button>
-            </div>
-          </div>
-
-          <demo-module-guide-card v-if="remarkMode" :guide="flow"></demo-module-guide-card>
-
-          <div class="list-with-remark">
-            <div class="demo-card list-main ledger-matrix" ref="summaryCardRef">
-              <div class="list-toolbar">
-                <span class="list-toolbar__title">并集矩阵</span>
-                <div class="list-toolbar__actions">
-                  <el-button @click="exportSummary">导出数据</el-button>
-                  <el-button type="danger" @click="toast('批量删除')">批量删除</el-button>
-                  <demo-toolbar-icon-btn icon="columns" title="列设置" @click="toast('列设置')" />
-                  <demo-toolbar-icon-btn icon="refresh" title="刷新" @click="doSummaryQuery" />
-                  <demo-toolbar-icon-btn icon="fullscreen" title="全屏" @click="toggleSummaryFullscreen" />
-                  <demo-toolbar-icon-btn icon="filter" title="自定义查询" @click="toast('自定义查询')" />
+              <div class="list-body">
+                <demo-vxe-wrap
+                  ref="vxeWrapRef"
+                  :key="matrixTableKey"
+                  :show-table="pagedRows.length > 0"
+                  empty-text="请在左侧选择分类后查看数据"
+                  class="demo-table--wide demo-table--ledger-matrix"
+                  :data="pagedRows"
+                  :column-config="{ resizable: true, minWidth: 80, useKey: true }"
+                  :row-config="{ isHover: true, keyField: 'id' }"
+                  :row-class-name="matrixRowClassName"
+                  :checkbox-config="{ reserve: true, highlight: true, checkMethod: canCheckRow }"
+                  :scroll-x="{ enabled: true }"
+                  @checkbox-change="onSelChange"
+                  @checkbox-all="onSelChange"
+                >
+                  <vxe-column
+                    v-for="col in matrixColumns"
+                    :key="matrixColumnKey(col)"
+                    v-bind="col"
+                  />
+                </demo-vxe-wrap>
+                <div class="list-pager">
+                  <el-pagination
+                    v-model:current-page="pageNum"
+                    v-model:page-size="pageSize"
+                    :page-sizes="pageSizes"
+                    :total="batchRowTotal"
+                    layout="prev, pager, next, sizes, jumper, ->, total"
+                  >
+                    <template #total="{ total }">共 {{ total }} 条记录</template>
+                  </el-pagination>
                 </div>
               </div>
-              <vxe-table
-                :key="summaryTableKey"
-                class="demo-table demo-table--wide demo-table--ledger-matrix"
-                :data="summaryDisplayRows"
-                border stripe
-                height="400"
-                :column-config="{ resizable: true, minWidth: 80, useKey: true }"
-                :row-config="{ isHover: true, keyField: 'id' }"
-                :row-class-name="matrixRowClassName"
-                :checkbox-config="{ checkMethod: canCheckSummaryRow }"
-                :scroll-x="{ enabled: true }"
-                empty-text="请配置样本过滤条件后查询"
-              >
-                <vxe-column
-                  v-for="col in summaryColumns"
-                  :key="matrixColumnKey(col)"
-                  v-bind="col"
-                />
-              </vxe-table>
-            </div>
+            </section>
             <demo-remark-aside v-if="remarkMode" :remarks="remarks"></demo-remark-aside>
           </div>
-        </template>
 
-        <el-dialog v-model="catDlg" title="新增分类" width="520px" destroy-on-close>
+        <el-dialog v-model="catDlg" class="demo-dialog demo-dialog--biz" title="新增分类" width="520px" destroy-on-close>
           <el-form label-width="100px" size="default" :model="catForm" class="demo-dialog-form">
-            <el-form-item v-if="activeTab === '生产过程'" label="QCP点" required>
-              <el-select v-model="catForm.qcpCode" filterable style="width:100%">
-                <el-option
-                  v-for="q in qcpOptions"
-                  :key="q.qcpCode"
-                  :label="q.qcpCode + ' ' + q.qcpName"
-                  :value="q.qcpCode"
-                />
-              </el-select>
-            </el-form-item>
-            <demo-field-remark
-              v-if="remarkMode && activeTab === '生产过程'"
-              v-bind="fieldRemarkProps('ledgerCategory', 'qcpCode')"
-            />
-            <el-form-item v-else label="物料编码" required>
+            <el-form-item v-if="activeTab !== '生产过程'" label="物料编码" required>
               <el-select v-model="catForm.materialCode" filterable style="width:100%">
                 <el-option
                   v-for="m in enabledMaterials"
@@ -292,6 +188,20 @@
             <demo-field-remark
               v-if="remarkMode && activeTab !== '生产过程'"
               v-bind="fieldRemarkProps('ledgerCategory', 'materialCode')"
+            />
+            <el-form-item label="采样点" required>
+              <el-select v-model="catForm.qcpCode" filterable style="width:100%">
+                <el-option
+                  v-for="q in qcpOptions"
+                  :key="q.qcpCode"
+                  :label="q.qcpCode + ' ' + q.qcpName"
+                  :value="q.qcpCode"
+                />
+              </el-select>
+            </el-form-item>
+            <demo-field-remark
+              v-if="remarkMode"
+              v-bind="fieldRemarkProps('ledgerCategory', 'qcpCode')"
             />
           </el-form>
           <template #footer>
@@ -308,9 +218,9 @@
       DemoQueryPanel: ChromDriftQueryPanel,
       DemoQueryField: ChromDriftQueryField,
       DemoFieldRemark: ChromDriftFieldRemark,
+      DemoVxeWrap: ChromDriftVxeWrap,
     },
     setup() {
-      const summaryFieldKeys = ['applyType', 'materialInfo', 'qcpPoint', 'batchNo'];
       const ledger = ref(ChromDriftStorage.load('ledger-lc-data', clone(SEED_LEDGER_LC)));
       watch(ledger, (v) => ChromDriftStorage.save('ledger-lc-data', v), { deep: true });
 
@@ -322,15 +232,15 @@
       const selectedCategoryId = ref('');
       const pageNum = ref(1);
       const pageSize = ref(10);
-      const tableRef = ref(null);
+      const vxeWrapRef = ref(null);
       const listCardRef = ref(null);
-      const summaryCardRef = ref(null);
+
+      function getTable() {
+        return vxeWrapRef.value?.getTable?.() || null;
+      }
 
       const rtColumns = ref([]);
       const matrixRows = ref([]);
-      const summaryFilters = ref([emptySummaryRow()]);
-      const summaryRtColumns = ref([]);
-      const summaryRows = ref([]);
 
       const catDlg = ref(false);
       const catForm = ref({ materialCode: '', qcpCode: '' });
@@ -361,13 +271,7 @@
 
       const batchRowTotal = computed(() => matrixRows.value.filter((r) => !r.isFixed).length);
 
-      const summaryDisplayRows = computed(() => summaryRows.value.map(
-        (r) => flattenMatrixRow(r, summaryRtColumns.value),
-      ));
-
       const matrixTableKey = computed(() => `${activeTab.value}__${rtColumns.value.join('|')}`);
-
-      const summaryTableKey = computed(() => `summary__${summaryRtColumns.value.join('|')}`);
 
       const matrixColumns = computed(() => [
         { type: 'checkbox', width: 42, fixed: 'left' },
@@ -376,15 +280,6 @@
         { field: 'rowLabel', title: '典型保留时间', width: 110, fixed: 'left', showOverflow: true },
         ...buildRtColumnDefs(rtColumns.value),
         ...MATRIX_META_COLUMNS,
-      ]);
-
-      const summaryColumns = computed(() => [
-        { type: 'checkbox', width: 42, fixed: 'left' },
-        { field: 'sourceType', title: '数据来源', width: 100, fixed: 'left', showOverflow: true },
-        { field: 'qcpPoint', title: 'QCP点', width: 100, fixed: 'left', showOverflow: true },
-        { field: 'rowLabel', title: '典型保留时间', width: 110, fixed: 'left', showOverflow: true },
-        ...buildRtColumnDefs(summaryRtColumns.value),
-        ...SUMMARY_META_COLUMNS,
       ]);
 
       function matrixRowClassName({ row }) {
@@ -462,14 +357,10 @@
         return row.rowType === 'batch' && row.enabled !== false;
       }
 
-      function canCheckSummaryRow({ row }) {
-        return row.rowType === 'batch';
-      }
-
       function onSelChange() {}
 
       function batchDelete() {
-        const rows = tableRef.value?.getCheckboxRecords() || [];
+        const rows = getTable()?.getCheckboxRecords() || [];
         if (!rows.length) {
           ElMessage.warning('请勾选批号行');
           return;
@@ -496,14 +387,14 @@
             return;
           }
           persistAndRefresh();
-          tableRef.value?.clearCheckboxRow();
+          getTable()?.clearCheckboxRow();
           ElMessage.success('删除成功');
         }).catch(() => {});
       }
 
       function exportData() {
-        const rows = tableRef.value?.getCheckboxRecords()?.length
-          ? tableRef.value.getCheckboxRecords()
+        const rows = getTable()?.getCheckboxRecords()?.length
+          ? getTable().getCheckboxRecords()
           : matrixRows.value.filter((r) => r.rowType === 'batch');
         if (!rows.length) {
           ElMessage.warning('无数据可导出');
@@ -524,13 +415,13 @@
       function openAddCategory() {
         catForm.value = activeTab.value === '生产过程'
           ? { materialCode: '', qcpCode: 'QCP02' }
-          : { materialCode: 'RM001', qcpCode: '' };
+          : { materialCode: 'RM001', qcpCode: 'QCP01' };
         catDlg.value = true;
       }
 
       function confirmAddCategory() {
-        if (activeTab.value === '生产过程' && !catForm.value.qcpCode) {
-          ElMessage.warning('请选择 QCP 点');
+        if (!catForm.value.qcpCode) {
+          ElMessage.warning('请选择采样点');
           return;
         }
         if (activeTab.value !== '生产过程' && !catForm.value.materialCode) {
@@ -555,69 +446,12 @@
         ElMessage.success('分类已新增');
       }
 
-      function addSummaryRow() {
-        summaryFilters.value.push(emptySummaryRow());
-      }
-
-      function removeSummaryRow(idx) {
-        summaryFilters.value.splice(idx, 1);
-      }
-
-      function validateSummaryFilters() {
-        for (const f of summaryFilters.value) {
-          if (!f.applyType) return '请选择类型';
-          if (!f.materialCode) return '请选择物料信息';
-          if (!f.qcpPoint) return '请选择 QCP 点';
-          if (!f.batchNo?.trim()) return '请填写批号';
-        }
-        return '';
-      }
-
-      function doSummaryQuery() {
-        const err = validateSummaryFilters();
-        if (err) {
-          ElMessage.warning(err);
-          return;
-        }
-        const result = LB.buildSummaryMatrix(
-          ledger.value,
-          summaryFilters.value,
-          'LC',
-          LB.optionsDriftRules(),
-        );
-        summaryRtColumns.value = result.rtColumns;
-        summaryRows.value = result.rows;
-        if (!result.rows.length) ElMessage.info('暂无匹配数据');
-        else ElMessage.success('汇总完成');
-      }
-
-      function resetSummary() {
-        summaryFilters.value = [emptySummaryRow()];
-        summaryRtColumns.value = [];
-        summaryRows.value = [];
-      }
-
-      function exportSummary() {
-        if (!summaryRows.value.length) {
-          ElMessage.warning('无数据可导出');
-          return;
-        }
-        ElMessage.success('导出完成（Demo）');
-      }
-
       function toast(msg) {
         ElMessage.info(`${msg}（Demo 占位）`);
       }
 
       function toggleFullscreen() {
         const el = listCardRef.value;
-        if (!el) return;
-        if (!document.fullscreenElement) el.requestFullscreen?.();
-        else document.exitFullscreen?.();
-      }
-
-      function toggleSummaryFullscreen() {
-        const el = summaryCardRef.value;
         if (!el) return;
         if (!document.fullscreenElement) el.requestFullscreen?.();
         else document.exitFullscreen?.();
@@ -632,18 +466,15 @@
         treeKeyword, filterTree, treeData, selectedCategoryId, onTreeSelect,
         rtColumns, matrixRows, pagedRows, batchRowTotal, matrixColumns, matrixTableKey,
         pageNum, pageSize, pageSizes: PAGE_SIZES,
-        tableRef, listCardRef, summaryCardRef,
+        vxeWrapRef, listCardRef,
         canCheckRow, onSelChange, batchDelete, exportData, refreshList,
-        canCheckSummaryRow, matrixRowClassName, matrixColumnKey,
+        matrixRowClassName, matrixColumnKey,
         openAddCategory, catDlg, catForm, confirmAddCategory,
         enabledMaterials, qcpOptions,
-        summaryFilters, summaryTypes: SUMMARY_TYPES,
-        addSummaryRow, removeSummaryRow, doSummaryQuery, resetSummary,
-        summaryRtColumns, summaryRows, summaryDisplayRows, summaryColumns, summaryTableKey, exportSummary,
-        remarks, flow, remarkMode, summaryFieldKeys,
+        remarks, flow, remarkMode,
         fieldRemarkProps: ChromDriftFormFieldRemarks.fieldRemarkProps,
         toast,
-        toggleFullscreen, toggleSummaryFullscreen, cellVal,
+        toggleFullscreen, cellVal,
       };
     },
   };

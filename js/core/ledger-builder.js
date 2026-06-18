@@ -20,9 +20,14 @@
 
   function categoryName(head) {
     const mat = (head.materialInfo || '').trim();
-    if (head.applyType === '生产过程' && head.qcpPoint) {
+    const qcp = (head.qcpPoint || '').trim();
+    if (head.applyType === '生产过程' && qcp) {
       const product = mat.split('-')[0] || mat;
-      return `${product}-${head.qcpPoint}`;
+      return `${product}-${qcp}`;
+    }
+    if (qcp && mat) {
+      const base = mat.includes('-') ? mat.split('-')[0] : mat;
+      return `${base}-${qcp}`;
     }
     if (mat.includes('-')) return mat;
     return mat || '未分类';
@@ -444,8 +449,10 @@
     let name = '';
     if (applyType === '生产过程') {
       name = qcpPoint || '';
+    } else if (materialCode && qcpPoint) {
+      name = `${materialCode}-${qcpPoint}`;
     } else {
-      name = materialCode || '';
+      name = materialCode || qcpPoint || '';
     }
     if (!name) return { error: '请填写分类信息' };
     if (store.categories.some((c) => c.name === name && c.applyType === applyType)) {

@@ -1,5 +1,5 @@
 /**
- * 列表查询区：默认展示前 5 项并自适应铺满卡片，其余项展开后显示
+ * 列表查询区 · §8 扁平 query-area（分割主钮查询 + 重置 + 展开/收起）
  */
 (function () {
   const { ref, computed, provide, inject } = Vue;
@@ -35,7 +35,7 @@
     components: { DemoQueryField },
     props: {
       model: { type: Object, default: () => ({}) },
-      visibleLimit: { type: Number, default: 5 },
+      visibleLimit: { type: Number, default: 4 },
     },
     emits: ['submit'],
     setup(props, { emit }) {
@@ -52,13 +52,6 @@
         return index;
       }
 
-      const gridColumns = computed(() => {
-        const total = fieldTotal.value;
-        const limit = props.visibleLimit;
-        const firstRowCount = total ? Math.min(total, limit) : limit;
-        return `repeat(${firstRowCount}, minmax(0, 1fr)) auto`;
-      });
-
       const expandable = computed(() => fieldTotal.value > props.visibleLimit);
 
       function toggleExpand() {
@@ -74,35 +67,37 @@
       return {
         expanded,
         expandable,
-        gridColumns,
         toggleExpand,
         onSubmit: () => emit('submit'),
       };
     },
     template: `
-      <div class="demo-card demo-query-panel">
-        <el-form
-          class="demo-query-form"
-          :class="{ 'is-expanded': expanded }"
-          :model="model"
-          size="default"
-          label-width="auto"
-          @submit.prevent="onSubmit"
-        >
-          <div class="demo-query-form__grid" :style="{ gridTemplateColumns: gridColumns }">
-            <slot></slot>
-            <div class="demo-query-form__actions">
-              <slot name="actions"></slot>
-              <el-button
-                v-if="expandable"
-                link
-                type="primary"
-                @click="toggleExpand"
-              >{{ expanded ? '收起' : '展开' }}</el-button>
-            </div>
+      <section class="query-area demo-query-panel">
+        <div class="query-area__row demo-query-panel__row">
+          <div class="query-area__fields demo-query-panel__fields">
+            <el-form
+              class="query-form demo-query-form"
+              :class="{ 'is-expanded': expanded }"
+              :model="model"
+              size="default"
+              label-width="auto"
+              inline
+              @submit.prevent="onSubmit"
+            >
+              <slot></slot>
+            </el-form>
           </div>
-        </el-form>
-      </div>
+          <div class="query-area__actions demo-query-form__actions">
+            <slot name="actions"></slot>
+            <el-button
+              v-if="expandable"
+              link
+              type="primary"
+              @click="toggleExpand"
+            >{{ expanded ? '收起' : '展开' }}</el-button>
+          </div>
+        </div>
+      </section>
     `,
   };
 

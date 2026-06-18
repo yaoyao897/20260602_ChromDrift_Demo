@@ -12,12 +12,15 @@
 <body>
 <div id="boot-error"></div>
 <div id="app">
-  <div class="demo-app">
-    <aside class="demo-aside">
-      <div class="demo-aside__logo">QMS · 色谱漂移</div>
+  <div class="app-shell">
+    <aside class="app-aside">
+      <div class="app-aside__logo">QMS · 色谱漂移</div>
       <el-menu
         :default-active="currentPage"
         :default-openeds="defaultOpeneds"
+        background-color="#FFFFFF"
+        text-color="#262626"
+        active-text-color="#1A4099"
         @select="onMenuSelect"
       >
         <el-sub-menu index="chrom-drift">
@@ -27,59 +30,44 @@
       </el-menu>
     </aside>
 
-    <div class="demo-main">
-      <header class="demo-header">
-        <div>
-          <h1 class="demo-header__title">{{ pageTitle }}</h1>
-          <div class="demo-header__breadcrumb">{{ breadcrumb }}</div>
+    <div class="app-main">
+      <header class="app-header">
+        <el-breadcrumb separator="/">
+          <el-breadcrumb-item v-for="(item, idx) in breadcrumbItems" :key="idx">{{ item }}</el-breadcrumb-item>
+        </el-breadcrumb>
+        <div class="app-header__actions">
+          <el-tooltip content="恢复初始数据">
+            <button type="button" class="app-header__icon" @click="resetDemo">↺</button>
+          </el-tooltip>
+          <el-tooltip :content="remarkMode ? '关闭备注模式' : '开启备注模式'">
+            <button type="button" class="app-header__icon" :class="{ on: remarkMode }" @click="toggleRemarkMode">📝</button>
+          </el-tooltip>
+          <el-tooltip :content="aiMode ? '关闭 AI 助理' : '开启 AI 助理'">
+            <button type="button" class="app-header__icon" :class="{ on: aiMode }" @click="toggleAiMode">✨</button>
+          </el-tooltip>
         </div>
       </header>
 
-      <main class="demo-body">
-        <drift-rule-page v-if="currentPage === 'drift-rule'"></drift-rule-page>
-        <warning-rule-page v-else-if="currentPage === 'warning-rule'"></warning-rule-page>
-        <recognition-page v-else-if="currentPage === 'recognition'"></recognition-page>
-        <ledger-gc-page v-else-if="currentPage === 'ledger-gc'"></ledger-gc-page>
-
-        <ledger-lc-page v-else-if="currentPage === 'ledger-lc'"></ledger-lc-page>
-      </main>
+      <div class="app-body">
+        <div class="page-panel">
+          <drift-rule-page v-if="currentPage === 'drift-rule'"></drift-rule-page>
+          <warning-rule-page v-else-if="currentPage === 'warning-rule'"></warning-rule-page>
+          <recognition-page v-else-if="currentPage === 'recognition'"></recognition-page>
+          <ledger-gc-page v-else-if="currentPage === 'ledger-gc'"></ledger-gc-page>
+          <ledger-compare-gc-page v-else-if="currentPage === 'ledger-compare-gc'"></ledger-compare-gc-page>
+          <ledger-lc-page v-else-if="currentPage === 'ledger-lc'"></ledger-lc-page>
+          <ledger-compare-lc-page v-else-if="currentPage === 'ledger-compare-lc'"></ledger-compare-lc-page>
+        </div>
+      </div>
     </div>
   </div>
 
-  <teleport to="body">
-    <div class="demo-global-actions" aria-label="全局操作">
-      <demo-toolbar-icon-btn
-        emoji="✨"
-        :title="aiMode ? '关闭 AI 助理' : '开启 AI 助理'"
-        :active="aiMode"
-        placement="bottom"
-        @click="toggleAiMode"
-      ></demo-toolbar-icon-btn>
-      <demo-toolbar-icon-btn
-        icon="remark"
-        :title="remarkMode ? '关闭备注模式' : '开启备注模式'"
-        :active="remarkMode"
-        placement="bottom"
-        @click="toggleRemarkMode"
-      ></demo-toolbar-icon-btn>
-      <demo-toolbar-icon-btn
-        icon="reset"
-        title="恢复初始数据"
-        placement="bottom"
-        @click="resetDemo"
-      ></demo-toolbar-icon-btn>
-    </div>
-  </teleport>
-
-  <div v-if="aiMode" class="demo-ai-panel">
-    <div class="demo-ai-panel__header">
-      <span>✨ AI 助理</span>
-      <el-button link type="primary" @click="closeAiMode">关闭</el-button>
-    </div>
-    <div class="demo-ai-panel__body">
-      初始化骨架已预留 AI 面板位置（§10）。图谱识别新增/复核弹窗已接入「AI 计算助理」；本全局面板可扩展跨模块业务问答。
-    </div>
-  </div>
+  <demo-global-ai-assistant
+    v-if="aiMode"
+    :current-page="currentPage"
+    :ledger-tab="''"
+    @close="closeAiMode"
+  />
 </div>
 
 <script src="js/vendor/vue.global.prod.js"></script>
@@ -109,15 +97,20 @@
 <script src="js/demo-field-remark.js"></script>
 <script src="js/demo-field-remark-list.js"></script>
 <script src="js/demo-toolbar-icons.js"></script>
+<script src="js/demo-vxe-wrap.js"></script>
+<script src="js/demo-status-tag.js"></script>
 <script src="js/demo-query-panel.js"></script>
 <script src="js/demo-module-guide.js"></script>
 <script src="js/demo-deepseek-client.js"></script>
+<script src="js/demo-ai-knowledge.js"></script>
+<script src="js/demo-global-ai-assistant.js"></script>
 <script src="js/demo-recognition-ai-assistant.js"></script>
 <script src="js/modules/drift-rule.js"></script>
 <script src="js/modules/warning-rule.js"></script>
 <script src="js/modules/recognition.js"></script>
 <script src="js/modules/ledger-gc.js"></script>
 <script src="js/modules/ledger-lc.js"></script>
+<script src="js/modules/ledger-compare.js"></script>
 <script src="js/demo-app.js"></script>
 </body>
 </html>

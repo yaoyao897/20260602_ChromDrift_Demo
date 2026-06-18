@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>色谱漂移 · Demo</title>
+  <link rel="stylesheet" href="css/element-plus.css" />
+  <link rel="stylesheet" href="css/vxe-pc-ui.css" />
+  <link rel="stylesheet" href="css/vxe-table.css" />
+  <link rel="stylesheet" href="css/demo-tokens.css" />
+</head>
+<body>
+<div id="boot-error"></div>
+<div id="app">
+  <div class="demo-app">
+    <aside class="demo-aside">
+      <div class="demo-aside__logo">QMS · 色谱漂移</div>
+      <el-menu
+        :default-active="currentPage"
+        :default-openeds="defaultOpeneds"
+        @select="onMenuSelect"
+      >
+        <el-sub-menu index="chrom-drift">
+          <template #title>色谱漂移</template>
+          <el-menu-item v-for="m in modules" :key="m.id" :index="m.id">{{ m.label }}</el-menu-item>
+        </el-sub-menu>
+      </el-menu>
+    </aside>
+
+    <div class="demo-main">
+      <header class="demo-header">
+        <div>
+          <h1 class="demo-header__title">{{ pageTitle }}</h1>
+          <div class="demo-header__breadcrumb">{{ breadcrumb }}</div>
+        </div>
+      </header>
+
+      <main class="demo-body">
+        <drift-rule-page v-if="currentPage === 'drift-rule'"></drift-rule-page>
+        <warning-rule-page v-else-if="currentPage === 'warning-rule'"></warning-rule-page>
+        <recognition-page v-else-if="currentPage === 'recognition'"></recognition-page>
+        <ledger-gc-page v-else-if="currentPage === 'ledger-gc'"></ledger-gc-page>
+
+        <ledger-lc-page v-else-if="currentPage === 'ledger-lc'"></ledger-lc-page>
+      </main>
+    </div>
+  </div>
+
+  <teleport to="body">
+    <div class="demo-global-actions" aria-label="全局操作">
+      <demo-toolbar-icon-btn
+        emoji="✨"
+        :title="aiMode ? '关闭 AI 助理' : '开启 AI 助理'"
+        :active="aiMode"
+        placement="bottom"
+        @click="toggleAiMode"
+      ></demo-toolbar-icon-btn>
+      <demo-toolbar-icon-btn
+        icon="remark"
+        :title="remarkMode ? '关闭备注模式' : '开启备注模式'"
+        :active="remarkMode"
+        placement="bottom"
+        @click="toggleRemarkMode"
+      ></demo-toolbar-icon-btn>
+      <demo-toolbar-icon-btn
+        icon="reset"
+        title="恢复初始数据"
+        placement="bottom"
+        @click="resetDemo"
+      ></demo-toolbar-icon-btn>
+    </div>
+  </teleport>
+
+  <div v-if="aiMode" class="demo-ai-panel">
+    <div class="demo-ai-panel__header">
+      <span>✨ AI 助理</span>
+      <el-button link type="primary" @click="closeAiMode">关闭</el-button>
+    </div>
+    <div class="demo-ai-panel__body">
+      初始化骨架已预留 AI 面板位置（§10）。模块实现后可接入色谱漂移业务问答与操作确认。
+    </div>
+  </div>
+</div>
+
+<script src="js/vendor/vue.global.prod.js"></script>
+<script src="js/vendor/xe-utils.umd.min.js"></script>
+<script src="js/vendor/vxe-pc-ui.umd.min.js"></script>
+<script src="js/vendor/vxe-table.umd.min.js"></script>
+<script src="js/vendor/element-plus.full.min.js"></script>
+<script src="js/demo-storage.js"></script>
+<script src="js/demo-remark-mode.js"></script>
+<script src="js/demo-ai-mode.js"></script>
+<script src="js/enums.js"></script>
+<script src="js/seed/seed-masters.js"></script>
+<script src="js/seed/seed-drift-rules.js"></script>
+<script src="js/seed/seed-warning-rules.js"></script>
+<script src="js/seed/seed-instruments.js"></script>
+<script src="js/validators/drift-rule.js"></script>
+<script src="js/validators/warning-rule.js"></script>
+<script src="js/validators/recognition.js"></script>
+<script src="js/core/rule-matcher.js"></script>
+<script src="js/core/drift-tr-resolver.js"></script>
+<script src="js/core/spectrum-calc.js"></script>
+<script src="js/core/ledger-builder.js"></script>
+<script src="js/seed/seed-mock-data.js"></script>
+<script src="js/seed/seed-test-spectra.js"></script>
+<script src="js/demo-remarks.js"></script>
+<script src="js/demo-toolbar-icons.js"></script>
+<script src="js/demo-query-panel.js"></script>
+<script src="js/demo-module-guide.js"></script>
+<script src="js/modules/drift-rule.js"></script>
+<script src="js/modules/warning-rule.js"></script>
+<script src="js/modules/recognition.js"></script>
+<script src="js/modules/ledger-gc.js"></script>
+<script src="js/modules/ledger-lc.js"></script>
+<script src="js/demo-app.js"></script>
+</body>
+</html>
